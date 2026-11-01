@@ -1,0 +1,11 @@
+services:
+  kraud:
+    build: .
+    ports: ["3000:3000"]
+    env_file: .env
+    environment:
+      KRAUD_DATA_DIR: /data
+    volumes:
+      - kraud-data:/data   # persistent: DB, user uploads, runtime seed output
+volumes:
+  kraud-data:

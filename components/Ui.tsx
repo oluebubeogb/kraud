@@ -1,0 +1,30 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Icon from "./Icon";
+export function PasswordInput({ name = "password", placeholder = "e.g. jollof lekki umuahia", label = "Passphrase", help = true }: { name?: string; placeholder?: string; label?: string; help?: boolean }) {
+  const [show, setShow] = useState(false);
+  return (
+    <label className="block">
+      <span className="label">{label}</span>
+      <div className="relative mt-1.5">
+        <input name={name} type={show ? "text" : "password"} autoComplete="off" autoCapitalize="none" placeholder={placeholder} className="input pr-12" required />
+        <button type="button" onClick={() => setShow(!show)} aria-label={show ? "Hide" : "Show"} className="absolute right-1 top-1 h-10 w-10 grid place-items-center text-silver hover:text-navy"><Icon n={show ? "eyeoff" : "eye"} /></button>
+      </div>
+      {help && <span className="mt-1 block text-xs text-silver">Use 2 or more Nigerian words, e.g. <i>suya abuja</i> or <i>owambe jollof ikoyi</i>.</span>}
+    </label>
+  );
+}
+export async function post(action: string, body: unknown) {
+  const r = await fetch("/api/" + action, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const d = await r.json(); if (!r.ok) throw new Error(d.error || "Something went wrong"); return d;
+}
+export function ActionButton({ action, body, children, className = "btn-primary", then, confirm: c }: { action: string; body?: unknown; children: React.ReactNode; className?: string; then?: string; confirm?: string }) {
+  const r = useRouter(); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
+  return (<span className="inline-flex flex-col"><button disabled={busy} className={className} onClick={async () => { if (c && !window.confirm(c)) return; setBusy(true); setMsg(""); try { const d = await post(action, body ?? {}); if (then) r.push(then.replace(":id", d.id ?? "").replace(":ref", d.ref ?? "")); else { if (d.added !== undefined) setMsg(`Added ${d.added} listings · ${d.files} files on volume`); if (d.removedListings !== undefined) setMsg(`Removed ${d.removedListings} listings · ${d.removedFiles} files deleted`); r.refresh(); } } catch (e: any) { setMsg(e.message); } setBusy(false); }}>{busy ? "Please wait…" : children}</button>{msg && <span className="text-xs mt-1 text-teal">{msg}</span>}</span>);
+}
+export function Cover({ id, src, alt, className = "" }: { id: string; src: string; alt: string; className?: string }) {
+  const [ok, setOk] = useState(true);
+  return (<div className={`relative overflow-hidden bg-gradient-to-br from-navy to-teal ${className}`} style={{ backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" }}>
+    {ok && <img src={src} alt={alt} loading="lazy" onError={() => setOk(false)} className="absolute inset-0 w-full h-full object-cover" />}</div>);
+}
