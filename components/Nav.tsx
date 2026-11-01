@@ -22,7 +22,7 @@ export function SideNav({ admin, seller }: { admin: boolean; seller?: boolean })
   const items = [...TABS, ...(seller ? [["/seller", "Seller dashboard", "grid"]] : []), ["/reminders", "Reminders", "bell"], ...(admin ? [["/admin", "Admin", "shield"]] : [])] as [string, string, string][];
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-silver-200 bg-white h-screen sticky top-0 p-4">
-      <Link href="/" className="flex items-center gap-2 px-2 py-3"><img src="/icons/icon-192.png" alt="" className="w-9 h-9 rounded-lg" /><span className="text-xl font-extrabold tracking-tight text-navy">kraud</span></Link>
+      <Link href="/" className="flex items-center gap-2 px-2 py-3"><img src="/logo.png" alt="Kraud" className="h-9 w-auto" /></Link>
       <div className="mt-4 space-y-1">{items.map(([href, label, ic]) => (
         <Link key={href} href={href} className={`flex items-center gap-3 rounded-xl px-3 h-11 text-sm font-medium ${p.startsWith(href) ? "bg-navy text-white" : "text-navy hover:bg-navy-50"}`}><Icon n={ic} />{label}</Link>))}</div>
       <div className="mt-auto text-[11px] text-silver px-2">Escrow-protected · Monnify payments</div>

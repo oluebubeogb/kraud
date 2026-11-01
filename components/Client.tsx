@@ -24,7 +24,7 @@ export function LoginForm() {
     <label className="block"><span className="label">Username or email</span><input name="id" className="input mt-1.5" placeholder="ada or ada@kraud.ng" autoCapitalize="none" required /></label>
     <PasswordInput help={false} /><Err e={f.error} />
     <button className="btn-primary w-full" disabled={f.busy}>{f.busy ? "Signing in…" : "Sign in"}</button>
-    <div className="flex justify-between text-sm"><Link href="/forgot" className="text-teal font-medium">Forgot passphrase?</Link><Link href="/signup" className="text-navy font-medium">Create account</Link></div></form>);
+    <div className="flex justify-between text-sm"><Link href="/forgot" className="text-teal font-medium">Forgot password?</Link><Link href="/signup" className="text-navy font-medium">Create account</Link></div></form>);
 }
 export function SignupForm() {
   const r = useRouter(); const [dev, setDev] = useState("");
@@ -49,11 +49,11 @@ export function ForgotForm() {
   const [step, setStep] = useState<"ask" | "reset" | "done">("ask"); const [id, setId] = useState(""); const [dev, setDev] = useState("");
   const a = useForm("forgot", (d) => { setStep("reset"); if (d.devPhrase) setDev(d.devPhrase); });
   const b = useForm("reset", () => setStep("done"));
-  if (step === "done") return <div className="text-center space-y-4"><h2 className="font-bold text-navy text-lg">Passphrase updated</h2><Link href="/login" className="btn-primary w-full">Sign in</Link></div>;
+  if (step === "done") return <div className="text-center space-y-4"><h2 className="font-bold text-navy text-lg">Password updated</h2><Link href="/login" className="btn-primary w-full">Sign in</Link></div>;
   if (step === "reset") return (<form onSubmit={b.onSubmit} className="space-y-4"><input type="hidden" name="id" value={id} />
     <p className="text-sm text-silver">We emailed a 2-word Nigerian reset phrase. It expires in <b className="text-navy">15 minutes</b>.</p>
     {dev && <p className="chip bg-teal-50 text-teal">Dev (SMTP off): {dev}</p>}
-    <PasswordInput name="phrase" label="Reset phrase" placeholder="e.g. suya kano" help={false} /><PasswordInput label="New passphrase" /><Err e={b.error} /><button className="btn-primary w-full">Reset passphrase</button></form>);
+    <PasswordInput name="phrase" label="Reset phrase" placeholder="e.g. suya kano" help={false} /><PasswordInput label="New password" /><Err e={b.error} /><button className="btn-primary w-full">Reset password</button></form>);
   return (<form onSubmit={(e) => { setId(String(new FormData(e.currentTarget).get("id"))); a.onSubmit(e); }} className="space-y-4">
     <label className="block"><span className="label">Username or email</span><input name="id" className="input mt-1.5" required autoCapitalize="none" /></label><Err e={a.error} /><button className="btn-primary w-full">Send reset phrase</button></form>);
 }

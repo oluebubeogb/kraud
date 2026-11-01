@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { checkPassphrase } from "@/lib/words";
+const checkPassphrase = (p: string) => p.length < 8 ? "Password must be at least 8 characters" : p.length > 128 ? "Password is too long" : !/[A-Za-z]/.test(p) || !/[^A-Za-z]/.test(p) ? "Use letters plus at least one number or symbol" : null;
 import { checkPw, clearSession, currentUser, findLogin, hashPw, isAdmin, issueToken, kycOk, setSession, useToken, type Me } from "@/lib/auth";
 import { devMail, sendMail } from "@/lib/mail";
 import { seedAdd, seedRemove } from "@/lib/seed";
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
       }
       case "login": {
         const id = str(b.id).toLowerCase(); if (limited("login:" + id, 8, 15 * 60e3) || limited("loginip:" + ip, 30, 15 * 60e3)) return err("Too many attempts. Try again in 15 minutes.", 429);
-        const u = await findLogin(id); if (!u || !checkPw(u, String(b.password || ""))) return err("Wrong username/email or passphrase", 401);
+        const u = await findLogin(id); if (!u || !checkPw(u, String(b.password || ""))) return err("Wrong username/email or password", 401);
         await setSession(u.id); return j({ ok: true });
       }
       case "logout": await clearSession(); return j({ ok: true });
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
       case "forgot": {
         if (limited("forgot:" + ip, 10, 3600e3)) return err("Too many requests", 429);
         const u = await findLogin(str(b.id)); if (!u) return j({ ok: true });
-        const t = await issueToken(u.id, "reset"); await sendMail(u.email, "Kraud passphrase reset", `Your reset phrase (valid 15 minutes): ${t.phrase}\n\nIf you didn't ask for this, ignore this email.`);
+        const t = await issueToken(u.id, "reset"); await sendMail(u.email, "Kraud password reset", `Your reset phrase (valid 15 minutes): ${t.phrase}\n\nIf you didn't ask for this, ignore this email.`);
         return j({ ok: true, ...dev({ devPhrase: t.phrase }) });
       }
       case "reset": {

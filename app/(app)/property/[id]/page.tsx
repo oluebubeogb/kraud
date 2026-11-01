@@ -4,12 +4,12 @@ import Icon from "@/components/Icon";
 import { FeaturedTag, ListingCard, StatusChip } from "@/components/Bits";
 import { ActionButton, Cover } from "@/components/Ui";
 import { featured, getListing, listings } from "@/lib/q";
-import { requireUser } from "@/lib/auth";
+import { currentUser } from "@/lib/auth";
 import { track } from "@/lib/pricing";
 import { naira } from "@/lib/format";
 export default async function Prop({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params; const u = await requireUser(); const l = await getListing(id); if (!l || (l.moderation !== "Approved" && l.sellerId !== u.id)) notFound();
-  const mine = l.sellerId === u.id; const imm = (await featured("immersive")).find((x) => x.id !== l.id); const similar = (await listings({ city: l.city, NOT: { id: l.id } })).slice(0, 3); if (imm) await track("immersive", l.city);
+  const { id } = await params; const u = await currentUser(); const uid = u?.id ?? ""; const l = await getListing(id); if (!l || (l.moderation !== "Approved" && (!uid || l.sellerId !== uid))) notFound();
+  const mine = !!uid && l.sellerId === uid; const imm = (await featured("immersive")).find((x) => x.id !== l.id); const similar = (await listings({ city: l.city, NOT: { id: l.id } })).slice(0, 3); if (imm) await track("immersive", l.city);
   return (<div className="lg:px-8 lg:pt-6">
     <div className="relative"><Cover id={l.id} src={l.img} alt={l.title} className="h-[52vh] lg:h-[60vh] lg:rounded-3xl" /><div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 lg:rounded-3xl" />
       <Link href="/explore" className="absolute top-[max(env(safe-area-inset-top),14px)] left-4 w-10 h-10 grid place-items-center rounded-full bg-white/90 text-navy"><Icon n="back" /></Link>
@@ -23,12 +23,12 @@ export default async function Prop({ params }: { params: Promise<{ id: string }>
         {similar.length > 0 && <div><h2 className="font-bold text-navy mb-2">More in {l.city}</h2><div className="grid sm:grid-cols-2 gap-3">{similar.map((x) => <ListingCard key={x.id} l={x} compact />)}</div></div>}
       </div>
       <div className="hidden lg:block"><div className="card p-5 sticky top-6 space-y-3"><div className="text-3xl font-extrabold text-navy">{naira(l.price)}</div><div className="text-sm text-silver">Listed by {l.sellerName}</div>
-        {mine ? <Link href={`/seller/listing/${l.id}`} className="btn-primary w-full h-12">Edit your listing</Link> : <><Link href={`/checkout/${l.id}`} className="btn-primary w-full h-12">Buy now</Link><ActionButton action="goal" body={{ listingId: l.id }} then="/savings" className="btn-ghost w-full">Save toward this home</ActionButton><ActionButton action="chat-start" body={{ listingId: l.id }} then="/chat/:id" className="btn-ghost w-full">Chat with seller</ActionButton></>}{l.moderation !== "Approved" && <p className="chip bg-silver-200 text-navy">{l.moderation} — not public yet</p>}</div></div>
+        {mine ? <Link href={`/seller/listing/${l.id}`} className="btn-primary w-full h-12">Edit your listing</Link> : <><Link href={`/checkout/${l.id}`} className="btn-primary w-full h-12">Buy now</Link>{u ? <><ActionButton action="goal" body={{ listingId: l.id }} then="/savings" className="btn-ghost w-full">Save toward this home</ActionButton><ActionButton action="chat-start" body={{ listingId: l.id }} then="/chat/:id" className="btn-ghost w-full">Chat with seller</ActionButton></> : <><Link href="/signup" className="btn-ghost w-full">Sign up to save or chat</Link><p className="text-xs text-silver text-center">Browsing is free — an account is only needed to buy, save or chat.</p></>}</>}{l.moderation !== "Approved" && <p className="chip bg-silver-200 text-navy">{l.moderation} — not public yet</p>}</div></div>
     </div>
-    {!mine && <div className="lg:hidden fixed bottom-16 inset-x-0 z-30 bg-white border-t border-silver-200 px-4 py-2.5 flex items-center gap-2" style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
+    {!mine && <div className={`lg:hidden fixed ${u ? "bottom-16" : "bottom-0"} inset-x-0 z-30 bg-white border-t border-silver-200 px-4 py-2.5 flex items-center gap-2`} style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
       <div className="flex-1 min-w-0"><div className="text-[11px] text-silver">Price</div><div className="font-extrabold text-navy truncate">{naira(l.price)}</div></div>
-      <ActionButton action="chat-start" body={{ listingId: l.id }} then="/chat/:id" className="btn-ghost w-11 px-0"><Icon n="chat" /></ActionButton>
-      <ActionButton action="goal" body={{ listingId: l.id }} then="/savings" className="btn-ghost w-11 px-0"><Icon n="piggy" /></ActionButton>
+      {u ? <><ActionButton action="chat-start" body={{ listingId: l.id }} then="/chat/:id" className="btn-ghost w-11 px-0"><Icon n="chat" /></ActionButton>
+      <ActionButton action="goal" body={{ listingId: l.id }} then="/savings" className="btn-ghost w-11 px-0"><Icon n="piggy" /></ActionButton></> : <Link href="/signup" className="btn-ghost px-3 text-sm">Sign up</Link>}
       <Link href={`/checkout/${l.id}`} className="btn-primary px-6">Buy</Link></div>}
     <div className="h-20 lg:hidden" /></div>);
 }
