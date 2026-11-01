@@ -24,6 +24,9 @@ const P: Record<string, string> = {
   grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   send: "M4 12l16-8-6 16-2-6z",
   logout: "M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10",
+  heart: "M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z",
+  bookmark: "M6 3h12v18l-6-4-6 4z",
+  share: "M4 12l16-8-6 16-2-6zM12 14l8-10",
   sparkle: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6",
 };
 export default function Icon({ n, className = "w-5 h-5" }: { n: string; className?: string }) {

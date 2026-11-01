@@ -3,15 +3,11 @@ import Icon from "./Icon";
 import { Cover } from "./Ui";
 import { nairaShort } from "@/lib/format";
 import type { L as Listing } from "@/lib/q";
-export function FeaturedTag({ slot }: { slot?: string }) {
-  return <span className="chip bg-white/95 text-navy border border-navy/10 shadow-sm"><Icon n="star" className="w-3 h-3 mr-1 text-teal" />Featured{slot ? ` · ${slot}` : ""}</span>;
-}
 export const StatusChip = ({ s }: { s: string }) => <span className={`chip ${s === "Completed" ? "bg-teal-50 text-teal" : s === "Carcass" ? "bg-navy-50 text-navy" : "bg-silver-200 text-navy"}`}>{s}</span>;
-export function ListingCard({ l, slot, compact }: { l: Listing; slot?: string; compact?: boolean }) {
+export function ListingCard({ l, compact, i = 0 }: { l: Listing; compact?: boolean; i?: number }) {
   return (
-    <Link href={`/property/${l.id}`} className="group card overflow-hidden block hover:shadow-lift hover:-translate-y-0.5 transition">
-      <div className="relative"><Cover id={l.id} src={l.img} alt={l.title} className={compact ? "h-32" : "h-44"} />
-        <div className="absolute top-2 left-2 flex gap-1.5">{slot && <FeaturedTag slot={slot} />}</div>
+    <Link href={`/property/${l.id}`} className="group card k-card k-rise overflow-hidden block" style={{ ["--i" as any]: i % 12 }}>
+      <div className="relative k-img"><Cover id={l.id} src={l.img} alt={l.title} className={compact ? "h-32" : "h-44"} />
         <div className="absolute bottom-2 left-2"><StatusChip s={l.status} /></div></div>
       <div className="p-3">
         <div className="text-[17px] font-bold text-navy">{nairaShort(l.price)}</div>

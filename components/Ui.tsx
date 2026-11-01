@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "./Icon";
 export function PasswordInput({ name = "password", placeholder = "At least 8 characters", label = "Password", help = true }: { name?: string; placeholder?: string; label?: string; help?: boolean }) {
@@ -24,7 +24,11 @@ export function ActionButton({ action, body, children, className = "btn-primary"
   return (<span className="inline-flex flex-col"><button disabled={busy} className={className} onClick={async () => { if (c && !window.confirm(c)) return; setBusy(true); setMsg(""); try { const d = await post(action, body ?? {}); if (then) r.push(then.replace(":id", d.id ?? "").replace(":ref", d.ref ?? "")); else { if (d.added !== undefined) setMsg(`Added ${d.added} listings · ${d.files} files on volume`); if (d.removedListings !== undefined) setMsg(`Removed ${d.removedListings} listings · ${d.removedFiles} files deleted`); r.refresh(); } } catch (e: any) { setMsg(e.message); } setBusy(false); }}>{busy ? "Please wait…" : children}</button>{msg && <span className="text-xs mt-1 text-teal">{msg}</span>}</span>);
 }
 export function Cover({ id, src, alt, className = "" }: { id: string; src: string; alt: string; className?: string }) {
-  const [ok, setOk] = useState(true);
+  // Image is always rendered (no state that can lock to placeholder before hydration); on error retry once with cache-buster, then hide.
+  const ref = useRef<HTMLImageElement>(null); const [tries, setTries] = useState(0); const [hidden, setHidden] = useState(false);
+  const url = tries > 0 && src ? `${src}${src.includes("?") ? "&" : "?"}r=${tries}` : src;
+  useEffect(() => { const i = ref.current; if (i && i.complete && i.naturalWidth === 0 && src) setTries(1); }, [src]);
+  useEffect(() => { setHidden(false); setTries(0); }, [src]);
   return (<div className={`relative overflow-hidden bg-gradient-to-br from-navy to-teal ${className}`} style={{ backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" }}>
-    {ok && <img src={src} alt={alt} loading="lazy" onError={() => setOk(false)} className="absolute inset-0 w-full h-full object-cover" />}</div>);
+    {src && !hidden && <img ref={ref} key={url} src={url} alt={alt} decoding="async" onError={() => (tries < 2 ? setTries(tries + 1) : setHidden(true))} className="absolute inset-0 w-full h-full object-cover" />}</div>);
 }

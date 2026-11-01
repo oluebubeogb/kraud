@@ -4,5 +4,5 @@ export const metadata: Metadata = { title: "Kraud — Own property across Nigeri
 export const viewport: Viewport = { themeColor: "#002454", width: "device-width", initialScale: 1, viewportFit: "cover" };
 export default function Root({ children }: { children: React.ReactNode }) {
   return (<html lang="en-NG"><body className="font-sans antialiased">{children}
-    <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'))}` }} /></body></html>);
+    <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).then(r=>r.update()))}` }} /></body></html>);
 }

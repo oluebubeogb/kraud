@@ -5,11 +5,11 @@ import Icon from "./Icon";
 const TABS = [["/explore", "Home", "home"], ["/investments", "Investments", "chart"], ["/savings", "Savings", "piggy"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
 const SELLER_TABS = [["/explore", "Home", "home"], ["/seller", "Seller", "grid"], ["/investments", "Portfolio", "chart"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
 export function BottomNav({ seller }: { seller?: boolean }) {
-  const p = usePathname(); const tabs = seller ? SELLER_TABS : TABS;
+  const p = usePathname(); const tabs = (seller ? SELLER_TABS : TABS).map((t) => t[0] === "/explore" ? (["/immersive", "Discover", "expand"] as const) : t);
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-silver-200" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       <div className="grid grid-cols-5 h-16">
-        {tabs.map(([href, label, ic]) => { const on = p.startsWith(href); return (
+        {tabs.map(([href, label, ic]) => { const on = p.startsWith(href) || (href === "/immersive" && p.startsWith("/explore")); return (
           <Link key={href} href={href} className={`flex flex-col items-center justify-center gap-0.5 text-[10.5px] font-medium ${on ? "text-navy" : "text-silver"}`}>
             <span className={`grid place-items-center w-12 h-7 rounded-full transition ${on ? "bg-navy-50" : ""}`}><Icon n={ic} className="w-[22px] h-[22px]" /></span>{label}
           </Link>); })}
