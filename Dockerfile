@@ -15,8 +15,13 @@ COPY . .
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
+# Isolated, complete Prisma CLI install (with all transitive deps like `effect`) for `migrate deploy`
+FROM node:22-alpine AS prisma-cli
+WORKDIR /opt/prisma-cli
+RUN npm init -y >/dev/null && npm install --omit=dev --no-audit --no-fund prisma@6.19.3
+
 FROM node:22-alpine AS run
-RUN apk add --no-cache openssl libc6-compat tini
+RUN apk add --no-cache openssl libc6-compat tini wget
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 KRAUD_DATA_DIR=/data PORT=3000 HOSTNAME=0.0.0.0
 COPY --from=build /app/public ./public
@@ -24,14 +29,14 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/assets ./assets
-COPY --from=build /app/node_modules/prisma ./node_modules/prisma
 COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/node_modules/pdfkit ./node_modules/pdfkit
+COPY --from=prisma-cli /opt/prisma-cli /opt/prisma-cli
 RUN mkdir -p /data && chown -R node:node /data
 USER node
 VOLUME ["/data"]
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
 ENTRYPOINT ["/sbin/tini","--"]
-CMD ["sh","-c","node node_modules/prisma/build/index.js migrate deploy && node server.js"]
+CMD ["sh","-c","node /opt/prisma-cli/node_modules/prisma/build/index.js migrate deploy --schema ./prisma/schema.prisma && node server.js"]

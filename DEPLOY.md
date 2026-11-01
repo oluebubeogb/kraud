@@ -10,7 +10,7 @@ Production stack: Next.js 15 (standalone) · Postgres 16 (Prisma migrations) · 
    - `SMTP_HOST/PORT/USER/PASS/FROM` — **required**; without SMTP, sign-up / reset / 2FA return a clear error in production
    - `MONNIFY_API_KEY`, `MONNIFY_SECRET_KEY`, `MONNIFY_CONTRACT_CODE`, `MONNIFY_ENV=sandbox|live`
 3. Volumes `kraud-data` (→ `/data`: uploads, PDF receipts, seed files) and `kraud-pg` are persistent — do not delete them on redeploy.
-4. Domain → port **3000**. Deploy. The container runs `prisma migrate deploy` on every start, then `node server.js`. Health: `GET /api/health`.
+4. Domain → port **3000**. Deploy. The container runs `prisma migrate deploy` on every start (Prisma CLI is installed in full at `/opt/prisma-cli` in the image), then `node server.js`. Health: `GET /api/health`.
 
 ## Option B — Dockerfile + Coolify-managed Postgres
 Create a Postgres database in Coolify, copy its internal URL to `DATABASE_URL`, deploy this repo with **Build pack: Dockerfile**, add a persistent storage mount at `/data`.
