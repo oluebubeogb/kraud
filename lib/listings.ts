@@ -1,6 +1,7 @@
-export type Listing = { id: string; title: string; city: string; estate: string; state: string; price: number; beds: number; baths: number; sqm: number; status: "Completed" | "Carcass" | "Off-plan"; type: string; img: string; seller: string; sellerName: string; featured?: string[]; desc: string };
+/** Seed catalogue (one-click add/remove from Admin). Live listings come from Postgres. */
+export type SeedListing = { id: string; title: string; city: string; estate: string; state: string; price: number; beds: number; baths: number; sqm: number; status: "Completed" | "Carcass" | "Off-plan"; type: string; img: string; seller: string; sellerName: string; featured?: string[]; desc: string };
 const u = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=70`;
-export const LISTINGS: Listing[] = [
+export const SEED_LISTINGS: SeedListing[] = [
   { id: "lk-01", title: "5-Bed Fully Detached Duplex", city: "Lagos", estate: "Pinnock Beach Estate, Lekki", state: "Lagos", price: 485_000_000, beds: 5, baths: 6, sqm: 620, status: "Completed", type: "Duplex", img: u("photo-1613490493576-7fde63acd811"), seller: "s1", sellerName: "Adebayo Homes", featured: ["search","immersive"], desc: "Waterfront-adjacent smart home with cinema, BQ, and 24/7 power. Governor's consent title." },
   { id: "lk-02", title: "4-Bed Terrace + BQ", city: "Lagos", estate: "Ikate, Lekki Phase 1", state: "Lagos", price: 165_000_000, beds: 4, baths: 5, sqm: 380, status: "Carcass", type: "Terrace", img: u("photo-1600596542815-ffad4c1539a9"), seller: "s1", sellerName: "Adebayo Homes", featured: ["recommended"], desc: "Carcass stage — finish to your taste. Ideal entry for investors; 30% upfront, staged payment plan." },
   { id: "ik-03", title: "3-Bed Luxury Apartment", city: "Lagos", estate: "Banana Island, Ikoyi", state: "Lagos", price: 720_000_000, beds: 3, baths: 4, sqm: 410, status: "Completed", type: "Apartment", img: u("photo-1600585154340-be6161a56a0c"), seller: "s2", sellerName: "Ikoyi Prime Realty", featured: ["sidebar"], desc: "Lagoon views, concierge, gym and pool. Service charge inclusive for year one." },
@@ -13,16 +14,6 @@ export const LISTINGS: Listing[] = [
   { id: "um-10", title: "3-Bed Bungalow", city: "Umuahia", estate: "Government Station Layout", state: "Abia", price: 32_000_000, beds: 3, baths: 3, sqm: 210, status: "Completed", type: "Bungalow", img: u("photo-1599809275671-b5942cabc7a2"), seller: "s4", sellerName: "Umuahia Estates Ltd", desc: "Move-in ready bungalow near Federal Medical Centre. Registered survey and deed." },
   { id: "en-11", title: "4-Bed Detached Duplex", city: "Enugu", estate: "Independence Layout", state: "Enugu", price: 120_000_000, beds: 4, baths: 5, sqm: 400, status: "Off-plan", type: "Duplex", img: u("photo-1568605114967-8130f3a36994"), seller: "s3", sellerName: "Capital Crest", desc: "Premium off-plan in Enugu's most sought layout; 12-month delivery." },
 ];
-export const CITIES = ["All", "Lagos", "Abuja", "Port Harcourt", "Umuahia", "Enugu"];
-export const getListing = (id: string) => LISTINGS.find((l) => l.id === id);
-export const featuredFor = (slot: string) => LISTINGS.filter((l) => l.featured?.includes(slot));
-// Meta-style placement quote: impressions forecast x slot CPM x city factor, floored by admin minimum
-const SLOT_CPM: Record<string, number> = { search: 4200, sidebar: 2600, immersive: 6100, footer: 1500, recommended: 3400 };
-const CITY_IMP: Record<string, number> = { Lagos: 182000, Abuja: 121000, "Port Harcourt": 74000, Umuahia: 31000, Enugu: 46000 };
-const SLOT_SHARE: Record<string, number> = { search: 0.38, sidebar: 0.22, immersive: 0.12, footer: 0.31, recommended: 0.27 };
-export const SLOTS = Object.keys(SLOT_CPM);
-export function quote(slot: string, city: string, adminMin = 15000) {
-  const imp = Math.round((CITY_IMP[city] ?? 30000) * SLOT_SHARE[slot]);
-  const raw = (imp / 1000) * SLOT_CPM[slot] / 7 + city.length * 37 + slot.length * 11; // daily, deterministic unique jitter
-  return { impressions: imp, daily: Math.max(adminMin, Math.round(raw)) };
-}
+export const SEED_SELLERS: Record<string, { username: string; email: string }> = { s1: { username: "adebayohomes", email: "sales@adebayo.demo.kraud.ng" }, s2: { username: "ikoyiprime", email: "desk@ikoyiprime.demo.kraud.ng" }, s3: { username: "capitalcrest", email: "hello@capitalcrest.demo.kraud.ng" }, s4: { username: "umuahiaestates", email: "info@umuahia.demo.kraud.ng" } };
+export const STATUSES = ["Completed", "Carcass", "Off-plan"];
+export const NG_STATES = ["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT","Gombe","Imo","Jigawa","Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo","Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"];

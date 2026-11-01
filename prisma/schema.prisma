@@ -1,0 +1,271 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  BUYER
+  SELLER
+}
+
+enum KycStatus {
+  NOT_STARTED
+  SUBMITTED
+  PENDING_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+enum PayKind {
+  PURCHASE
+  DEPOSIT
+  SAVINGS_TOPUP
+  PLACEMENT
+}
+
+enum PayStatus {
+  PENDING
+  HELD
+  RELEASED
+  REFUNDED
+  PAID
+  FAILED
+}
+
+model User {
+  id         String    @id @default(cuid())
+  username   String    @unique
+  email      String    @unique
+  name       String
+  hash       String
+  salt       String
+  verified   Boolean   @default(false)
+  role       Role      @default(BUYER)
+  businessName String?
+  seed       Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  kyc        Kyc?
+  sessions   Session[]
+  tokens     Token[]
+  listings   Listing[]
+  payments   Payment[]
+  goals      Goal[]
+  reminders  Reminder[]
+  buyerThreads  Thread[] @relation("buyer")
+  sellerThreads Thread[] @relation("seller")
+  messages   Message[]
+  withdrawals Withdrawal[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+
+model Token {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  phraseHash String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([userId, kind])
+}
+
+model Kyc {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     KycStatus @default(NOT_STARTED)
+  legalName  String
+  dob        String
+  phone      String
+  ninMasked  String
+  bvnMasked  String
+  ninEnc     String
+  bvnEnc     String
+  provider   String
+  providerRef String?
+  note       String?
+  submittedAt DateTime @default(now())
+  decidedAt  DateTime?
+  decidedBy  String?
+}
+
+model Listing {
+  id         String   @id @default(cuid())
+  title      String
+  city       String
+  estate     String
+  state      String
+  price      BigInt
+  beds       Int
+  baths      Int
+  sqm        Int
+  status     String
+  type       String
+  img        String
+  desc       String
+  sellerId   String
+  seller     User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  featured   String[] @default([])
+  moderation String   @default("Pending")
+  seed       Boolean  @default(false)
+  files      String[] @default([])
+  createdAt  DateTime @default(now())
+  payments   Payment[]
+  threads    Thread[]
+  goals      Goal[]
+  placements Placement[]
+  @@index([city])
+}
+
+model Payment {
+  id          String    @id @default(cuid())
+  ref         String    @unique
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId   String?
+  listing     Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  goalId      String?
+  placementId String?   @unique
+  kind        PayKind
+  title       String
+  amount      BigInt
+  fee         BigInt
+  status      PayStatus @default(PENDING)
+  provider    String
+  providerRef String?   @unique
+  method      String?
+  checkoutUrl String?
+  paidAt      DateTime?
+  receiptPath String?
+  diligenceOk Boolean   @default(false)
+  diligenceNote String?
+  diligenceBy String?
+  releasedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  ledger      LedgerEntry[]
+  @@index([userId])
+}
+
+model LedgerEntry {
+  id        String   @id @default(cuid())
+  paymentId String?
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  account   String
+  amount    BigInt
+  memo      String
+  createdAt DateTime @default(now())
+  @@index([account])
+}
+
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  provider   String
+  eventKey   String   @unique
+  payload    Json
+  createdAt  DateTime @default(now())
+}
+
+model Goal {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  title     String
+  target    BigInt
+  saved     BigInt   @default(0)
+  createdAt DateTime @default(now())
+  withdrawals Withdrawal[]
+}
+
+model Withdrawal {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId    String
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  amount    BigInt
+  bankCode  String
+  accountNumber String
+  status    String   @default("REQUESTED")
+  providerRef String?
+  createdAt DateTime @default(now())
+}
+
+model Thread {
+  id        String    @id @default(cuid())
+  buyerId   String
+  buyer     User      @relation("buyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    User      @relation("seller", fields: [sellerId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+  @@unique([buyerId, listingId])
+}
+
+model Message {
+  id       String   @id @default(cuid())
+  threadId String
+  thread   Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  fromId   String
+  from     User     @relation(fields: [fromId], references: [id], onDelete: Cascade)
+  text     String
+  readAt   DateTime?
+  createdAt DateTime @default(now())
+  @@index([threadId])
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  dueAt     DateTime?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Placement {
+  id        String   @id @default(cuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  slot      String
+  city      String
+  dailyRate BigInt
+  days      Int
+  status    String   @default("PENDING")
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Impression {
+  slot  String
+  city  String
+  day   String
+  count Int    @default(0)
+  @@id([slot, city, day])
+}
+
+model Setting {
+  key   String @id
+  value String
+}

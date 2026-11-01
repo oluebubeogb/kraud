@@ -1,0 +1,31 @@
+import Link from "next/link";
+import Icon from "@/components/Icon";
+import { PageHead } from "@/components/Bits";
+import { KycForm, PlacementBooker } from "@/components/Client";
+import { ActionButton, Cover } from "@/components/Ui";
+import { prisma } from "@/lib/db";
+import { currentUser, requireUser, kycOk } from "@/lib/auth";
+import { quoteAll } from "@/lib/pricing";
+import { naira, nairaShort, wat } from "@/lib/format";
+export default async function Seller() {
+  const u = await requireUser();
+  if (u.role !== "SELLER") return <div><PageHead title="Seller dashboard" /><div className="px-4 lg:px-8"><div className="card p-5 flex items-center gap-3"><p className="flex-1 text-sm">Switch to a seller account to list properties.</p><ActionButton action="become-seller" body={{}} className="btn-teal">Become a seller</ActionButton></div></div></div>;
+  const [ls, sales, threads, placements, q] = await Promise.all([
+    prisma.listing.findMany({ where: { sellerId: u.id }, orderBy: { createdAt: "desc" }, include: { _count: { select: { threads: true, goals: true } } } }),
+    prisma.payment.findMany({ where: { listing: { sellerId: u.id }, kind: { in: ["PURCHASE", "DEPOSIT"] }, status: { in: ["HELD", "RELEASED", "REFUNDED"] } }, include: { listing: true, user: true }, orderBy: { paidAt: "desc" } }),
+    prisma.thread.findMany({ where: { sellerId: u.id }, orderBy: { updatedAt: "desc" }, take: 8, include: { buyer: true, listing: true, messages: { orderBy: { createdAt: "desc" }, take: 1 }, _count: { select: { messages: { where: { readAt: null, fromId: { not: u.id } } } } } } }),
+    prisma.placement.findMany({ where: { listing: { sellerId: u.id } }, include: { listing: true }, orderBy: { createdAt: "desc" }, take: 10 }), quoteAll()]);
+  const held = sales.filter((s) => s.status === "HELD").reduce((a, s) => a + Number(s.amount), 0); const rel = sales.filter((s) => s.status === "RELEASED").reduce((a, s) => a + Number(s.amount), 0);
+  const unread = threads.reduce((a, t) => a + t._count.messages, 0);
+  return (<div><PageHead title="Seller dashboard" sub={u.businessName || u.name} right={kycOk(u) ? <Link href="/seller/listing/new" className="btn-primary h-10"><Icon n="plus" className="w-4 h-4" />New listing</Link> : undefined} />
+    <div className="px-4 lg:px-8 space-y-5 pb-8">
+      {!kycOk(u) && <div className="card p-5"><h2 className="font-bold text-navy">Verify your identity to list</h2><p className="text-sm text-silver mb-3">{u.kyc?.status === "PENDING_REVIEW" ? "Your KYC is under review." : "One-off NIN/BVN check — required for sellers."}</p>{!u.kyc || u.kyc.status === "REJECTED" ? (u.verified ? <KycForm /> : <p className="text-sm">Verify your email first.</p>) : null}</div>}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[["Listings", String(ls.length)], ["Unread messages", String(unread)], ["In escrow", nairaShort(held)], ["Released", nairaShort(rel)]].map(([k, v]) => <div key={k} className="card p-3"><div className="text-xs text-silver">{k}</div><b className="text-navy text-lg">{v}</b></div>)}</div>
+      <div className="lg:grid lg:grid-cols-2 gap-5 space-y-5 lg:space-y-0">
+        <section className="card"><div className="p-4 pb-2 flex justify-between"><h2 className="font-bold text-navy">Buyer inbox</h2><Link href="/chat" className="text-xs text-teal">All</Link></div><div className="divide-y divide-silver-200">{threads.map((t) => <Link key={t.id} href={`/chat/${t.id}`} className="flex gap-3 px-4 py-3 hover:bg-paper"><div className="w-10 h-10 rounded-full bg-navy text-white grid place-items-center shrink-0">{t.buyer.name[0]}</div><div className="min-w-0 flex-1"><div className="flex justify-between text-sm"><b className="truncate">{t.buyer.name}</b>{t._count.messages > 0 && <span className="chip bg-teal text-white">{t._count.messages}</span>}</div><div className="text-xs text-silver truncate">{t.listing.title}</div><div className="text-sm truncate">{t.messages[0]?.text ?? "—"}</div></div></Link>)}{!threads.length && <p className="px-4 pb-4 text-sm text-silver">No buyer messages yet.</p>}</div></section>
+        <section className="card p-4"><h2 className="font-bold text-navy mb-3">Book a Featured placement</h2><PlacementBooker listings={ls.filter((l) => l.moderation === "Approved").map((l) => ({ id: l.id, title: l.title, city: l.city }))} quotes={q} />
+          {placements.length > 0 && <div className="mt-4 space-y-1 text-xs text-silver">{placements.map((p) => <div key={p.id}>{p.slot} · {p.listing.title} · {naira(Number(p.dailyRate))}/day × {p.days} · <b className="text-navy">{p.status}</b>{p.endsAt ? ` until ${wat(p.endsAt)}` : ""}</div>)}</div>}</section></div>
+      <section><h2 className="font-bold text-navy mb-2">Your listings</h2><div className="card divide-y divide-silver-200">{ls.map((l) => <div key={l.id} className="flex items-center gap-3 p-3"><Cover id={l.id} src={l.img} alt="" className="w-14 h-14 rounded-xl shrink-0" /><div className="flex-1 min-w-0"><Link href={`/property/${l.id}`} className="font-medium truncate block">{l.title}</Link><div className="text-xs text-silver">{l.city} · {nairaShort(Number(l.price))} · {l._count.threads} chats · {l._count.goals} savers</div></div><span className={`chip ${l.moderation === "Approved" ? "bg-teal-50 text-teal" : "bg-silver-200 text-navy"}`}>{l.moderation}</span><Link href={`/seller/listing/${l.id}`} className="btn-ghost h-9 text-xs">Edit</Link></div>)}{!ls.length && <p className="p-4 text-sm text-silver">No listings yet.</p>}</div></section>
+      <section><h2 className="font-bold text-navy mb-2">Sales</h2><div className="card divide-y divide-silver-200">{sales.map((s) => <div key={s.ref} className="flex justify-between gap-3 p-3 text-sm"><div className="min-w-0"><div className="truncate">{s.listing?.title}</div><div className="text-xs text-silver">{s.user.name} · {s.kind.toLowerCase()} · {s.paidAt ? wat(s.paidAt) : ""}</div></div><div className="text-right"><b className="text-navy">{nairaShort(Number(s.amount))}</b><div className="text-xs text-silver">{s.status === "HELD" ? (s.diligenceOk ? "Diligence ✓ · awaiting release" : "In escrow · diligence") : s.status.toLowerCase()}</div></div></div>)}{!sales.length && <p className="p-4 text-sm text-silver">No sales yet.</p>}</div></section>
+    </div></div>);
+}

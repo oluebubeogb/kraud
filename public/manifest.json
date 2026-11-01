@@ -1,1 +1,58 @@
-{"name":"Kraud — Real Estate Marketplace","short_name":"Kraud","start_url":"/explore","display":"standalone","orientation":"portrait","background_color":"#F7F8FA","theme_color":"#002454","icons":[{"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}
+{
+  "id": "/",
+  "name": "Kraud — Verified Property, Escrow Protected",
+  "short_name": "Kraud",
+  "description": "Buy, save toward and sell verified property across Nigeria with escrow-protected Monnify payments.",
+  "start_url": "/explore",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait",
+  "background_color": "#F7F8FA",
+  "theme_color": "#002454",
+  "lang": "en-NG",
+  "categories": [
+    "finance",
+    "lifestyle",
+    "business"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Explore",
+      "url": "/explore"
+    },
+    {
+      "name": "Savings",
+      "url": "/savings"
+    },
+    {
+      "name": "Messages",
+      "url": "/chat"
+    },
+    {
+      "name": "Seller dashboard",
+      "url": "/seller"
+    }
+  ]
+}

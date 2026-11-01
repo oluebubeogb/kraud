@@ -1,55 +1,28 @@
-# Kraud — Client Meeting Demo
+# Kraud — demo script (production build)
 
-Next.js 15 (TypeScript, App Router) + Tailwind · mobile-first PWA · no PHP.
+The demo runs on the real build: Postgres, real Monnify checkout (sandbox keys), real SMTP email, real PDF receipts. Nothing is mocked once keys are set.
 
-## Run locally
-```bash
-cd app
-cp .env.example .env.local   # already present in the zip
-npm i && npm run dev         # http://localhost:3000
-# or production mode: npm run build && npm start
-```
-Tip: open Chrome DevTools → device toolbar (iPhone 14) or open on a phone on the same Wi-Fi (`http://<laptop-ip>:3000`). Chrome → "Add to Home Screen" installs the PWA.
+## 0. Prep (admin)
+1. Sign up as `admin` (it's in `KRAUD_ADMINS`). Verify via the email link.
+2. **Admin → Sample seed data → Add seed data.** One click creates 11 nationwide listings (Lagos, Abuja, Port Harcourt, Enugu, **Umuahia**…), 4 KYC-verified sample sellers (passphrase `suya abuja`, e.g. `adebayohomes`, `umuahiaestates`) and sample buyer `ada` / `jollof lekki`. Files go to `/data/uploads/seed`. **Remove seed data** deletes rows, sample users and files.
 
-## Demo accounts
-| Who | Login | Passphrase | Notes |
-|---|---|---|---|
-| Admin | sign up with username **admin** (or email **ceo@kraud.ng**) | e.g. `oga lagos` | Admin because it is listed in `KRAUD_ADMINS` (env only, never in code) |
-| Buyer | `ada` or `ada@demo.kraud.ng` | `jollof lekki` | Created by the seed: email verified + KYC done |
+## 1. Buyer flow
+1. Sign up (Buy / invest), passphrase must be 2+ Nigerian words (e.g. `egusi owerri`), eye toggle shows it. Log in with username **or** email.
+2. Explore: Featured slots — Search (top card), Recommended (carousel), Sidebar (desktop), Footer, Immersive (property page). Filter by city / stage.
+3. Open a listing → **Buy now** → first time only: one-off NIN/BVN KYC (status: under review → admin approves, or auto with `KYC_PROVIDER=monnify`).
+4. Pay 30% deposit → Monnify sandbox checkout (use the sandbox test cards listed in Monnify's developer docs, or bank transfer). Returns to the receipt; webhook also confirms.
+5. Receipt shows **Paid · in escrow**; **Download PDF** (also emailed as attachment, stored in `/data/receipts`).
+6. **Chat with seller** — 1-on-1, the seller replies for real.
+7. Savings: "Save toward this home" → Top-up via Monnify → Withdraw needs KYC + emailed 2-word 2FA phrase (15-minute expiry) + bank/NUBAN.
+8. Forgot passphrase → emailed 2-word phrase, 15-minute expiry, 5 attempts.
 
-Passphrases must be 2+ words from the Nigerian word list (`lib/words.ts`, ~180 words). SMTP is off by default, so verify links / reset phrases / 2FA phrases are printed in the terminal **and** shown as a "Dev:" chip in the UI.
+## 2. Seller flow
+1. Log in as a sample seller (or Profile → Become a seller → KYC).
+2. **Seller dashboard**: buyer inbox (reply in real time), listings, sales with escrow status, Featured placement booking — unique Meta-style daily rate per slot/city, forecast reach, pay via Monnify; activates on payment.
+3. New listing → upload photo → submitted as **Pending** until admin approves.
 
-## Before the meeting (30 s)
-1. Sign up as **admin** → Profile → Admin console (or sidebar "Admin" on desktop).
-2. Click **Seed demo data** → writes 11 listings (Lagos, Abuja, PH, Enugu, Umuahia) + cover/meta files to `$KRAUD_DATA_DIR/uploads/seed`.
-3. To reset: **Remove seed data** → deletes those rows, the seeded `ada` user + her activity, and every seeded file on disk. Real user data/uploads are untouched.
+## 3. Admin flow
+- KYC queue (approve/reject, masked NIN/BVN only) · Escrow held → **Flag diligence OK** → **Release** (release is locked until diligence is flagged) or Refund · Withdrawals · Pricing grid with per-slot **minimum daily rates** · Listing moderation + manual Featured toggles · Ledger balances.
 
-## Meeting walkthrough (< 5 min)
-1. **Landing** `/` → "Get started".
-2. **Signup** a fresh account (try `hello world` to show the Nigerian-word rule, then `suya abuja`; tap the eye toggle). "Dev: open verify link" → verified.
-3. **Explore** — city chips (Umuahia!), Completed/Carcass/Off-plan filters, labelled **Featured** slots: Search (top card), Recommended (carousel), Footer (navy strip), Sidebar (desktop width).
-4. **Property** — immersive hero, **Featured · Immersive** tour card, sticky thumb-zone bar: Chat · Save · **Buy**.
-5. **Buy** → one-off **KYC** (any 11-digit NIN/BVN) → 30% deposit/full → **Monnify** sheet → "simulate success" → **Receipt** (KRD-ref, ₦, WAT, Download PDF via print).
-6. **Savings** — Save toward a listing, top-up chips, **Withdraw** → 2-word 2FA phrase with live 15:00 countdown (expires server-side after 15 min).
-7. **Chat** — 1-on-1 with the seller (auto-replies in demo). No group chats.
-8. **Reminders** (bell on Explore) — payment, KYC, savings, inspection nudges.
-9. **Admin** — seed add/remove, Meta-style placement pricing grid (unique per slot × city, admin min ₦15k/day), listing moderation (Hide/Approve).
-
-## Persistent data & Coolify
-Everything runtime lives under ONE directory: `KRAUD_DATA_DIR` (default `./data`, `/data` in Docker):
-```
-/data/kraud-db.json        # demo datastore (users, payments, goals, chats, listings)
-/data/uploads/             # user uploads (served via /media/...)
-/data/uploads/seed/        # runtime seed output — created/deleted by the admin buttons
-```
-- `data/` is in `.gitignore` and `.dockerignore`: seeds and user files are **never committed**. Seed *templates* live in source (`lib/listings.ts`); the seed button regenerates them on the volume after any deploy.
-- **Coolify:** deploy from the repo using the included `Dockerfile` → Storages → add **Persistent Volume**, destination path **`/data`** → set env `KRAUD_DATA_DIR=/data`, `KRAUD_ADMINS`, `KRAUD_SECRET`, `APP_URL`, `SMTP_*`. Redeploys keep `/data`. After first deploy: log in as admin → Seed demo data.
-- `docker compose up -d --build` does the same locally (named volume `kraud-data` → `/data`).
-
-## Known demo limitations
-- Datastore is a JSON file (swap for Postgres in Phase 1); single-instance only.
-- Monnify, NIN/BVN and escrow are simulated; no real money moves.
-- Listing photos load from Unsplash; offline, a seeded navy/teal cover SVG is shown instead.
-- Seller side of chat is auto-replies; sellers' dashboards not in this build.
-- Receipt PDF = browser print-to-PDF.
-- Android Studio APK / iOS wrappers come after the PWA.
+## 4. Mobile
+Install the PWA (Add to Home Screen) or ship the Capacitor apps in `native/`.

@@ -20,6 +20,7 @@ const P: Record<string, string> = {
   expand: "M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5",
   receipt: "M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6",
   lock: "M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4",
+  plus: "M12 5v14M5 12h14",
   grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   send: "M4 12l16-8-6 16-2-6z",
   logout: "M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10",

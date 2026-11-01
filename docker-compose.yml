@@ -1,11 +1,29 @@
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kraud
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: kraud
+    volumes:
+      - kraud-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kraud -d kraud"]
+      interval: 5s
+      retries: 20
   kraud:
     build: .
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
     ports: ["3000:3000"]
     env_file: .env
     environment:
+      DATABASE_URL: postgresql://kraud:${POSTGRES_PASSWORD:-change-me}@db:5432/kraud
       KRAUD_DATA_DIR: /data
     volumes:
-      - kraud-data:/data   # persistent: DB, user uploads, runtime seed output
+      - kraud-data:/data   # uploads, PDF receipts, seed files
 volumes:
+  kraud-pg:
   kraud-data:

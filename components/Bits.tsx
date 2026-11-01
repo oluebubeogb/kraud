@@ -2,7 +2,7 @@ import Link from "next/link";
 import Icon from "./Icon";
 import { Cover } from "./Ui";
 import { nairaShort } from "@/lib/format";
-import type { Listing } from "@/lib/listings";
+import type { L as Listing } from "@/lib/q";
 export function FeaturedTag({ slot }: { slot?: string }) {
   return <span className="chip bg-white/95 text-navy border border-navy/10 shadow-sm"><Icon n="star" className="w-3 h-3 mr-1 text-teal" />Featured{slot ? ` · ${slot}` : ""}</span>;
 }

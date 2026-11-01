@@ -1,4 +1,4 @@
-const C = "kraud-v1"; const SHELL = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png", "/mark.png"];
+const C = "kraud-v2"; const SHELL = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png", "/mark.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== C).map((x) => caches.delete(x))))); self.clients.claim(); });
 self.addEventListener("fetch", (e) => {
