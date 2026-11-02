@@ -28,9 +28,17 @@ const P: Record<string, string> = {
   grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   send: "M4 12l16-8-6 16-2-6z",
   logout: "M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10",
-  heart: "M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z",
   bookmark: "M6 3h12v18l-6-4-6 4z",
   share: "M4 12l16-8-6 16-2-6zM12 14l8-10",
+  wallet: "M3 7h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M16 13h.01",
+  users: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M18 14a6 6 0 0 1 4 7",
+  gift: "M3 9h18v4H3zM5 13h14v8H5zM12 9v12M12 9S10 4 7.5 5 9 9 12 9zM12 9s2-5 4.5-4S15 9 12 9",
+  info: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-5M12 8h.01",
+  trend: "M3 17l6-6 4 4 8-8M15 7h6v6",
+  clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2",
+  coins: "M8 8a5 2 0 1 0 0-.01M3 8v4c0 1.1 2.2 2 5 2M3 12v4c0 1.1 2.2 2 5 2M13 12a5 2 0 1 0 10 0 5 2 0 1 0-10 0M13 12v4c0 1.1 2.2 2 5 2s5-.9 5-2v-4",
+  camera: "M4 8h3l2-3h6l2 3h3v12H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+  key: "M15 7a4 4 0 1 1-3.5 6L4 20.5V17h3v-3h3l1.5-1.5A4 4 0 0 1 15 7z",
   sparkle: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6",
 };
 export default function Icon({ n, className = "w-5 h-5" }: { n: string; className?: string }) {

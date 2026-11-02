@@ -26,6 +26,20 @@ enum PayKind {
   DEPOSIT
   SAVINGS_TOPUP
   PLACEMENT
+  INVEST
+  VAULT_TOPUP
+  WALLET_TOPUP
+}
+
+enum CommerceMode {
+  INVEST
+  BUY
+  BOTH
+}
+
+enum Horizon {
+  SHORT_6M
+  LONG_12_18M
 }
 
 enum PayStatus {
@@ -38,28 +52,38 @@ enum PayStatus {
 }
 
 model User {
-  id         String    @id @default(cuid())
-  username   String    @unique
-  email      String    @unique
-  name       String
-  hash       String
-  salt       String
-  verified   Boolean   @default(false)
-  role       Role      @default(BUYER)
-  businessName String?
-  seed       Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  kyc        Kyc?
-  sessions   Session[]
-  tokens     Token[]
-  listings   Listing[]
-  payments   Payment[]
-  goals      Goal[]
-  reminders  Reminder[]
-  buyerThreads  Thread[] @relation("buyer")
-  sellerThreads Thread[] @relation("seller")
-  messages   Message[]
-  withdrawals Withdrawal[]
+  id              String           @id @default(cuid())
+  username        String           @unique
+  email           String           @unique
+  name            String
+  hash            String
+  salt            String
+  verified        Boolean          @default(false)
+  role            Role             @default(BUYER)
+  businessName    String?
+  profileImageUrl String?
+  walletBalance   BigInt           @default(0)
+  referralCode    String?          @unique
+  referredById    String?
+  seed            Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  kyc             Kyc?
+  sessions        Session[]
+  tokens          Token[]
+  listings        Listing[]
+  payments        Payment[]
+  goals           Goal[]
+  reminders       Reminder[]
+  buyerThreads    Thread[]         @relation("buyer")
+  sellerThreads   Thread[]         @relation("seller")
+  messages        Message[]
+  withdrawals     Withdrawal[]
+  units           InvestmentUnit[]
+  unitSales       UnitSale[]
+  vaults          SavingsVault[]
+  walletTxs       WalletTx[]
+  referralsMade   Referral[]       @relation("referrer")
+  referredBy      Referral?        @relation("referee")
 }
 
 model Session {
@@ -68,96 +92,118 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+
   @@index([userId])
 }
 
 model Token {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kind      String
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind       String
   phraseHash String
-  expiresAt DateTime
-  attempts  Int      @default(0)
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
   @@index([userId, kind])
 }
 
 model Kyc {
-  id         String    @id @default(cuid())
-  userId     String    @unique
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status     KycStatus @default(NOT_STARTED)
-  legalName  String
-  dob        String
-  phone      String
-  ninMasked  String
-  bvnMasked  String
-  ninEnc     String
-  bvnEnc     String
-  provider   String
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      KycStatus @default(NOT_STARTED)
+  legalName   String
+  dob         String
+  phone       String
+  ninMasked   String
+  bvnMasked   String
+  ninEnc      String
+  bvnEnc      String
+  provider    String
   providerRef String?
-  note       String?
-  submittedAt DateTime @default(now())
-  decidedAt  DateTime?
-  decidedBy  String?
+  note        String?
+  submittedAt DateTime  @default(now())
+  decidedAt   DateTime?
+  decidedBy   String?
 }
 
 model Listing {
-  id         String   @id @default(cuid())
-  title      String
-  city       String
-  estate     String
-  state      String
-  price      BigInt
-  beds       Int
-  baths      Int
-  sqm        Int
-  status     String
-  type       String
-  img        String
-  desc       String
-  sellerId   String
-  seller     User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  featured   String[] @default([])
-  moderation String   @default("Pending")
-  seed       Boolean  @default(false)
-  files      String[] @default([])
-  createdAt  DateTime @default(now())
-  payments   Payment[]
-  threads    Thread[]
-  goals      Goal[]
-  placements Placement[]
+  id              String           @id @default(cuid())
+  title           String
+  city            String
+  estate          String
+  state           String
+  price           BigInt
+  beds            Int
+  baths           Int
+  sqm             Int
+  status          String
+  type            String
+  img             String
+  desc            String
+  sellerId        String
+  seller          User             @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  featured        String[]         @default([])
+  moderation      String           @default("Pending")
+  seed            Boolean          @default(false)
+  files           String[]         @default([])
+  commerceMode    CommerceMode     @default(BOTH)
+  horizon         Horizon          @default(LONG_12_18M)
+  totalNeeded     BigInt           @default(0)
+  unitPrice       BigInt           @default(0)
+  seatsNeeded     Int              @default(0)
+  seatsTaken      Int              @default(0)
+  amountRaised    BigInt           @default(0)
+  maintenanceCost BigInt           @default(0)
+  completionCost  BigInt           @default(0)
+  minProfitMargin Float            @default(0)
+  estimatedProfit BigInt           @default(0)
+  insuranceFee    BigInt?
+  diligenceFee    BigInt?
+  raiseStatus     String           @default("OPEN")
+  raiseDeadline   DateTime?
+  createdAt       DateTime         @default(now())
+  payments        Payment[]
+  units           InvestmentUnit[]
+  threads         Thread[]
+  goals           Goal[]
+  placements      Placement[]
+
   @@index([city])
 }
 
 model Payment {
-  id          String    @id @default(cuid())
-  ref         String    @unique
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listingId   String?
-  listing     Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
-  goalId      String?
-  placementId String?   @unique
-  kind        PayKind
-  title       String
-  amount      BigInt
-  fee         BigInt
-  status      PayStatus @default(PENDING)
-  provider    String
-  providerRef String?   @unique
-  method      String?
-  checkoutUrl String?
-  paidAt      DateTime?
-  receiptPath String?
-  diligenceOk Boolean   @default(false)
+  id            String        @id @default(cuid())
+  ref           String        @unique
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId     String?
+  listing       Listing?      @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  goalId        String?
+  vaultId       String?
+  units         Int?
+  placementId   String?       @unique
+  kind          PayKind
+  title         String
+  amount        BigInt
+  fee           BigInt
+  status        PayStatus     @default(PENDING)
+  provider      String
+  providerRef   String?       @unique
+  method        String?
+  checkoutUrl   String?
+  paidAt        DateTime?
+  receiptPath   String?
+  diligenceOk   Boolean       @default(false)
   diligenceNote String?
-  diligenceBy String?
-  releasedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  ledger      LedgerEntry[]
+  diligenceBy   String?
+  releasedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  ledger        LedgerEntry[]
+
   @@index([userId])
 }
 
@@ -169,42 +215,44 @@ model LedgerEntry {
   amount    BigInt
   memo      String
   createdAt DateTime @default(now())
+
   @@index([account])
 }
 
 model WebhookEvent {
-  id         String   @id @default(cuid())
-  provider   String
-  eventKey   String   @unique
-  payload    Json
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  provider  String
+  eventKey  String   @unique
+  payload   Json
+  createdAt DateTime @default(now())
 }
 
 model Goal {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listingId String?
-  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
-  title     String
-  target    BigInt
-  saved     BigInt   @default(0)
-  createdAt DateTime @default(now())
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId   String?
+  listing     Listing?     @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  title       String
+  target      BigInt
+  saved       BigInt       @default(0)
+  createdAt   DateTime     @default(now())
   withdrawals Withdrawal[]
 }
 
 model Withdrawal {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goalId    String
-  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  amount    BigInt
-  bankCode  String
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId        String?
+  goal          Goal?    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  source        String   @default("GOAL")
+  amount        BigInt
+  bankCode      String
   accountNumber String
-  status    String   @default("REQUESTED")
-  providerRef String?
-  createdAt DateTime @default(now())
+  status        String   @default("REQUESTED")
+  providerRef   String?
+  createdAt     DateTime @default(now())
 }
 
 model Thread {
@@ -217,44 +265,46 @@ model Thread {
   listing   Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
   updatedAt DateTime  @updatedAt
   messages  Message[]
+
   @@unique([buyerId, listingId])
 }
 
 model Message {
-  id       String   @id @default(cuid())
-  threadId String
-  thread   Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  fromId   String
-  from     User     @relation(fields: [fromId], references: [id], onDelete: Cascade)
-  text     String
-  readAt   DateTime?
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  threadId  String
+  thread    Thread    @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  fromId    String
+  from      User      @relation(fields: [fromId], references: [id], onDelete: Cascade)
+  text      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
   @@index([threadId])
 }
 
 model Reminder {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   body      String
   dueAt     DateTime?
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  read      Boolean   @default(false)
+  createdAt DateTime  @default(now())
 }
 
 model Placement {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   listingId String
-  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing   Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
   slot      String
   city      String
   dailyRate BigInt
   days      Int
-  status    String   @default("PENDING")
+  status    String    @default("PENDING")
   startsAt  DateTime?
   endsAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 model Impression {
@@ -262,10 +312,97 @@ model Impression {
   city  String
   day   String
   count Int    @default(0)
+
   @@id([slot, city, day])
 }
 
 model Setting {
   key   String @id
   value String
+}
+
+/**
+ * Co-own holding: N units of a listing's raise pool.
+ */
+model InvestmentUnit {
+  id             String     @id @default(cuid())
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId      String
+  listing        Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  paymentRef     String     @unique
+  units          Int
+  invested       BigInt
+  fees           BigInt     @default(0)
+  expectedProfit BigInt     @default(0)
+  status         String     @default("ACTIVE")
+  maturesAt      DateTime
+  payout         BigInt?
+  paidOutAt      DateTime?
+  createdAt      DateTime   @default(now())
+  sales          UnitSale[]
+
+  @@index([userId])
+  @@index([listingId])
+}
+
+/**
+ * Liquidity: sell units after 3 months, forfeit 50% of profit earned to date.
+ */
+model UnitSale {
+  id        String         @id @default(cuid())
+  unitId    String
+  unit      InvestmentUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  earned    BigInt
+  forfeit   BigInt
+  refund    BigInt
+  status    String         @default("REQUESTED")
+  settledAt DateTime?
+  createdAt DateTime       @default(now())
+}
+
+/**
+ * Personal savings vault (no listing). Tier by lock length: ≤3 months / up to 12 months.
+ */
+model SavingsVault {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  lockMonths  Int
+  ratePct     Float
+  balance     BigInt   @default(0)
+  interest    BigInt   @default(0)
+  accruedAt   DateTime @default(now())
+  lockedUntil DateTime
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model WalletTx {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    BigInt
+  kind      String
+  memo      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Referral {
+  id         String    @id @default(cuid())
+  referrerId String
+  referrer   User      @relation("referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  refereeId  String    @unique
+  referee    User      @relation("referee", fields: [refereeId], references: [id], onDelete: Cascade)
+  reward     BigInt    @default(0)
+  status     String    @default("PENDING")
+  creditedAt DateTime?
+  createdAt  DateTime  @default(now())
 }

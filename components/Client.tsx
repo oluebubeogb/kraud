@@ -5,6 +5,8 @@ import Link from "next/link";
 import { post, PasswordInput } from "./Ui";
 import Icon from "./Icon";
 import { naira } from "@/lib/format";
+import Tip from "./Tip";
+import { calcFees, type FeeCfg } from "@/lib/deal";
 export function VerifyBanner({ email }: { email: string }) {
   const [link, setLink] = useState(""); const [sent, setSent] = useState(false);
   return (<div className="mx-4 lg:mx-8 mt-3 rounded-xl bg-navy text-white px-4 py-3 text-sm flex flex-wrap items-center gap-2">
@@ -26,13 +28,13 @@ export function LoginForm() {
     <button className="btn-primary w-full" disabled={f.busy}>{f.busy ? "Signing in…" : "Sign in"}</button>
     <div className="flex justify-between text-sm"><Link href="/forgot" className="text-teal font-medium">Forgot password?</Link><Link href="/signup" className="text-navy font-medium">Create account</Link></div></form>);
 }
-export function SignupForm() {
+export function SignupForm({ ref0 = "" }: { ref0?: string }) {
   const r = useRouter(); const [dev, setDev] = useState("");
   const [role, setRole] = useState<"BUYER" | "SELLER">("BUYER");
   const f = useForm("signup", (d) => { if (d.devLink) setDev(d.devLink); else { r.push("/explore"); r.refresh(); } });
   if (dev) return (<div className="space-y-4 text-center"><div className="mx-auto w-14 h-14 rounded-full bg-teal-50 text-teal grid place-items-center"><Icon n="check" className="w-7 h-7" /></div><h2 className="text-lg font-bold text-navy">Check your email</h2><p className="text-sm text-silver">We sent a Nigerian-word verification phrase. SMTP is not configured on this dev server, so use the dev link:</p><a href={dev} className="btn-teal w-full">Dev: open verify link</a><Link href="/explore" className="btn-ghost w-full">Skip for now</Link></div>);
   return (<form onSubmit={f.onSubmit} className="space-y-4">
-    <input type="hidden" name="role" value={role} /><div className="grid grid-cols-2 gap-2 rounded-xl bg-silver-200/60 p-1">{(["BUYER", "SELLER"] as const).map((x) => <button type="button" key={x} onClick={() => setRole(x)} className={`h-10 rounded-lg text-sm font-semibold ${role === x ? "bg-white text-navy shadow-card" : "text-silver"}`}>{x === "BUYER" ? "Buy / invest" : "Sell / develop"}</button>)}</div>
+    <input type="hidden" name="role" value={role} /><input type="hidden" name="ref" value={ref0} />{ref0 && <p className="chip wash-coral"><Icon n="gift" className="w-3.5 h-3.5" />Invited with code {ref0}</p>}<div className="grid grid-cols-2 gap-2 rounded-xl bg-silver-200/60 p-1">{(["BUYER", "SELLER"] as const).map((x) => <button type="button" key={x} onClick={() => setRole(x)} className={`h-10 rounded-lg text-sm font-semibold ${role === x ? "bg-white text-navy shadow-card" : "text-silver"}`}>{x === "BUYER" ? "Buy / invest" : "Sell / develop"}</button>)}</div>
     <label className="block"><span className="label">Full name</span><input name="name" className="input mt-1.5" placeholder="Ada Okafor" required /></label>
     {role === "SELLER" && <label className="block"><span className="label">Business / developer name</span><input name="businessName" className="input mt-1.5" placeholder="Umuahia Estates Ltd" required /></label>}
     <div className="grid grid-cols-2 gap-3"><label className="block"><span className="label">Username</span><input name="username" className="input mt-1.5" placeholder="ada" autoCapitalize="none" required /></label>
@@ -57,18 +59,57 @@ export function ForgotForm() {
   return (<form onSubmit={(e) => { setId(String(new FormData(e.currentTarget).get("id"))); a.onSubmit(e); }} className="space-y-4">
     <label className="block"><span className="label">Username or email</span><input name="id" className="input mt-1.5" required autoCapitalize="none" /></label><Err e={a.error} /><button className="btn-primary w-full">Send reset phrase</button></form>);
 }
-export function Checkout({ id, price, title, blocked, mode: payMode }: { id: string; price: number; title: string; blocked?: React.ReactNode; mode: string }) {
-  const [mode, setMode] = useState<"full" | "deposit">("deposit"); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
-  const amt = mode === "deposit" ? Math.round(price * 0.3) : price; const fee = Math.min(Math.round(amt * 0.015), 2_000_000);
-  const pay = async () => { setBusy(true); setErr(""); try { const d = await post("pay", { listingId: id, mode }); window.location.href = d.checkoutUrl; } catch (e: any) { setErr(e.message); setBusy(false); } };
+export function Checkout({ id, kind, unit, seatsLeft, profitPerUnit, price, cfg, insurer, wallet, blocked, mode: payMode }: { id: string; kind: "invest" | "buy"; unit: number; seatsLeft: number; profitPerUnit: number; price: number; cfg: FeeCfg; insurer: string; wallet: number; blocked?: React.ReactNode; mode: string }) {
+  const [units, setUnits] = useState(1); const [method, setMethod] = useState<"monnify" | "wallet">("monnify"); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const invest = kind === "invest"; const amt = invest ? unit * units : price; const f = calcFees(cfg, amt, invest ? "INVEST" : "PURCHASE", units); const total = amt + f.total;
+  const pay = async () => { setBusy(true); setErr(""); try { const d = await post("pay", { listingId: id, mode: kind, units, method }); window.location.href = d.checkoutUrl; } catch (e: any) { setErr(e.message); setBusy(false); } };
   if (blocked) return <>{blocked}</>;
+  const row = (k: React.ReactNode, v: string, strong?: boolean) => <div className={`flex justify-between items-center ${strong ? "font-bold text-navy pt-2 border-t border-silver-200" : ""}`}><span className={strong ? "" : "text-silver flex items-center gap-1.5"}>{k}</span><span>{v}</span></div>;
   return (<div className="space-y-4">
-    <div className="card p-4 space-y-2"><span className="label">Payment</span>
-      {(["deposit", "full"] as const).map((m) => <button key={m} onClick={() => setMode(m)} className={`w-full flex justify-between items-center rounded-xl border px-4 h-14 text-sm ${mode === m ? "border-navy bg-navy-50" : "border-silver-200"}`}><span className="font-medium">{m === "deposit" ? "30% deposit (escrow)" : "Pay in full (escrow)"}</span><b className="text-navy">{naira(m === "deposit" ? price * 0.3 : price)}</b></button>)}</div>
-    <div className="card p-4 text-sm space-y-1.5"><div className="flex justify-between"><span className="text-silver">Amount</span><span>{naira(amt)}</span></div><div className="flex justify-between"><span className="text-silver">Escrow fee (1.5%, capped)</span><span>{naira(fee)}</span></div><div className="flex justify-between font-bold text-navy pt-2 border-t border-silver-200"><span>Total</span><span>{naira(amt + fee)}</span></div></div>
-    <Err e={err} /><button className="btn-primary w-full h-12" disabled={busy} onClick={pay}><Icon n="lock" className="w-4 h-4" />{busy ? "Opening Monnify…" : "Pay securely with Monnify"}</button>
-    <p className="text-[11px] text-center text-silver">Card · Bank transfer · USSD — {payMode === "live" ? "live" : payMode === "sandbox" ? "Monnify sandbox" : payMode === "simulator" ? "local simulator (no Monnify keys)" : "not configured"}</p>
+    {invest && <div className="card p-4 k-pop"><div className="flex items-center justify-between"><span className="label">Units</span><span className="text-xs text-silver">{seatsLeft} left · {naira(unit)} each</span></div>
+      <div className="mt-3 flex items-center gap-3"><button className="btn-ghost w-11 px-0 text-lg" onClick={() => setUnits((u) => Math.max(1, u - 1))} aria-label="Fewer units">−</button>
+        <input className="input text-center text-lg font-bold" inputMode="numeric" value={units} onChange={(e) => setUnits(Math.max(1, Math.min(seatsLeft, Number(e.target.value.replace(/\D/g, "")) || 1)))} />
+        <button className="btn-ghost w-11 px-0 text-lg" onClick={() => setUnits((u) => Math.min(seatsLeft, u + 1))} aria-label="More units">+</button></div>
+      <div className="mt-3 grid grid-cols-2 gap-2"><div className="k-tile wash-mint"><div className="text-[11px] opacity-75">Est. profit</div><b className="text-[15px]">{naira(profitPerUnit * units)}</b></div><div className="k-tile wash-blue"><div className="text-[11px] opacity-75">Your share</div><b className="text-[15px]">{units} unit{units > 1 ? "s" : ""}</b></div></div></div>}
+    <div className="card p-4 text-sm space-y-2">
+      {row(invest ? "Units" : "Property price", naira(amt))}
+      {invest && row(<>Insurance<Tip text={`Covers the raise pool via ${insurer}.`} /></>, naira(f.insurance))}
+      {row(<>Due diligence<Tip text="Title, survey and site verification before funds move." /></>, naira(f.diligence))}
+      {row("Total", naira(total), true)}</div>
+    <div className="card p-4 space-y-2"><span className="label">Pay with</span>
+      {([["monnify", "Monnify", "Card · transfer · USSD"], ["wallet", "Kraud wallet", `Balance ${naira(wallet)}`]] as const).map(([m, t, sub]) => <button key={m} onClick={() => setMethod(m)} disabled={m === "wallet" && wallet < total} className={`w-full flex justify-between items-center rounded-xl border px-4 h-14 text-sm transition duration-200 disabled:opacity-50 ${method === m ? "border-teal bg-teal-50" : "border-silver-200"}`}><span className="text-left leading-tight"><b className="text-navy">{t}</b><span className="block text-[11px] text-silver">{sub}</span></span><span className={`w-4 h-4 rounded-full border-2 ${method === m ? "border-teal bg-teal" : "border-silver-200"}`} /></button>)}</div>
+    <Err e={err} /><button className="btn-primary w-full h-12" disabled={busy} onClick={pay}><Icon n="lock" className="w-4 h-4" />{busy ? "Processing…" : invest ? `Invest ${naira(total)}` : `Buy for ${naira(total)}`}</button>
+    {method === "monnify" && <p className="text-[11px] text-center text-silver">{payMode === "live" ? "Monnify live" : payMode === "sandbox" ? "Monnify sandbox" : payMode === "simulator" ? "Local simulator (no Monnify keys)" : "Monnify not configured"}</p>}
   </div>);
+}
+export function WalletTopUp() {
+  const [amt, setAmt] = useState(""); return (<div className="flex gap-2"><input className="input" inputMode="numeric" placeholder="Amount (₦)" value={amt} onChange={(e) => setAmt(e.target.value.replace(/\D/g, ""))} /><PayRedirect action="wallet-topup" body={{ amount: Number(amt) }} label="Top up" className="btn-teal shrink-0" /></div>);
+}
+export function VaultCreate({ r3, r12 }: { r3: number; r12: number }) {
+  const r = useRouter(); const [months, setMonths] = useState(12); const [title, setTitle] = useState(""); const [busy, setBusy] = useState(false); const [e, setE] = useState("");
+  return (<div className="space-y-3"><div className="grid grid-cols-2 gap-2">{([[3, r3, "wash-gold"], [12, r12, "wash-mint"]] as const).map(([m, rate, w]) => <button key={m} onClick={() => setMonths(m)} className={`rounded-2xl p-3 text-left ring-2 transition duration-200 ${w} ${months === m ? "ring-teal" : "ring-transparent"}`}><b className="block text-lg">{rate}% <span className="text-xs font-semibold">p.a.</span></b><span className="text-xs">Lock {m === 3 ? "up to 3 months" : "up to 12 months"}</span></button>)}</div>
+    <input className="input" placeholder="Name it (e.g. Land fund)" value={title} onChange={(x) => setTitle(x.target.value)} /><Err e={e} />
+    <button className="btn-primary w-full" disabled={busy} onClick={async () => { setBusy(true); setE(""); try { await post("vault-create", { months, title }); setTitle(""); r.refresh(); } catch (x: any) { setE(x.message); } setBusy(false); }}>Open vault</button></div>);
+}
+export function VaultTopUp({ id, wallet }: { id: string; wallet: number }) {
+  const r = useRouter(); const [amt, setAmt] = useState(""); const [e, setE] = useState(""); const [busy, setBusy] = useState(false);
+  const go = async (method: string) => { setBusy(true); setE(""); try { const d = await post("vault-topup", { id, amount: Number(amt), method }); if (method === "wallet") { setAmt(""); r.refresh(); setBusy(false); } else window.location.href = d.checkoutUrl; } catch (x: any) { setE(x.message); setBusy(false); } };
+  return (<div className="space-y-1.5"><div className="flex gap-2"><input className="input h-10" inputMode="numeric" placeholder="₦" value={amt} onChange={(x) => setAmt(x.target.value.replace(/\D/g, ""))} /><button className="btn-teal h-10 shrink-0" disabled={busy} onClick={() => go("monnify")}>Add</button>{wallet >= Number(amt || 0) && wallet > 0 && <button className="btn-ghost h-10 shrink-0" disabled={busy} onClick={() => go("wallet")}>From wallet</button>}</div><Err e={e} /></div>);
+}
+export function AvatarUpload({ src, name, required }: { src: string | null; name: string; required?: boolean }) {
+  const r = useRouter(); const [busy, setBusy] = useState(false); const [e, setE] = useState(""); const [img, setImg] = useState(src);
+  const up = async (f: File) => { setBusy(true); setE(""); const fd = new FormData(); fd.append("file", f); try { const res = await fetch("/api/upload?kind=avatar", { method: "POST", body: fd }); const d = await res.json(); if (!res.ok) throw new Error(d.error || "Upload failed"); setImg(d.url); r.refresh(); } catch (x: any) { setE(x.message); } setBusy(false); };
+  return (<div className="flex items-center gap-4"><label className="relative cursor-pointer group">
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    {img ? <img src={img} alt={name} className="w-20 h-20 rounded-full object-cover ring-4 ring-white shadow-card" /> : <span className="w-20 h-20 rounded-full grid place-items-center bg-gradient-to-br from-navy to-teal text-white text-2xl font-bold ring-4 ring-white shadow-card">{name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}</span>}
+    <span className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-teal text-white grid place-items-center ring-2 ring-white transition duration-200 group-hover:scale-110"><Icon n="camera" className="w-4 h-4" /></span>
+    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={busy} onChange={(x) => x.target.files?.[0] && up(x.target.files[0])} /></label>
+    <div className="text-sm"><b className="text-navy block">{busy ? "Uploading…" : img ? "Profile photo" : "Add a photo or logo"}</b>{required && !img && <span className="chip wash-coral mt-1">Required to publish listings</span>}<Err e={e} /></div></div>);
+}
+export function CopyCode({ code, link }: { code: string; link: string }) {
+  const [ok, setOk] = useState(""); const copy = async (t: string, w: string) => { try { await navigator.clipboard.writeText(t); setOk(w); setTimeout(() => setOk(""), 1500); } catch {} };
+  return (<div className="flex flex-wrap gap-2 items-center"><span className="font-mono font-bold text-lg tracking-widest text-navy bg-white rounded-xl px-3 h-10 grid place-items-center ring-1 ring-navy/10">{code}</span>
+    <button className="btn-ghost h-10" onClick={() => copy(code, "Code copied")}>Copy code</button><button className="btn-teal h-10" onClick={async () => { if (navigator.share) { try { await navigator.share({ title: "Join me on Kraud", text: `Own Together. Grow Together. Use my code ${code}`, url: link }); } catch {} } else copy(link, "Link copied"); }}>Share link</button>{ok && <span className="text-xs text-teal k-pop">{ok}</span>}</div>);
 }
 export function PayRedirect({ action, body, label, className = "btn-primary" }: { action: string; body: unknown; label: React.ReactNode; className?: string }) {
   const [busy, setBusy] = useState(false); const [e, setE] = useState("");
@@ -106,20 +147,21 @@ export function TopUp({ id }: { id: string }) {
   return (<div className="flex gap-2">{[50000, 250000, 1000000].map((a) => <PayRedirect key={a} action="topup" body={{ id, amount: a }} className="btn-ghost w-full px-2 text-xs" label={"+" + naira(a)} />)}</div>);
 }
 export const BANKS: [string, string][] = [["044", "Access Bank"], ["023", "Citibank"], ["050", "Ecobank"], ["070", "Fidelity Bank"], ["011", "First Bank"], ["214", "FCMB"], ["058", "GTBank"], ["030", "Heritage"], ["082", "Keystone"], ["50515", "Moniepoint MFB"], ["999992", "OPay"], ["999991", "PalmPay"], ["076", "Polaris"], ["221", "Stanbic IBTC"], ["232", "Sterling"], ["032", "Union Bank"], ["033", "UBA"], ["035", "Wema Bank"], ["057", "Zenith Bank"]];
-export function Withdraw({ goalId, amount }: { goalId: string; amount: number }) {
+export function Withdraw({ goalId = "", amount, source }: { goalId?: string; amount: number; source?: "wallet" }) {
   const r = useRouter(); const [open, setOpen] = useState(false); const [dev, setDev] = useState(""); const [exp, setExp] = useState(0); const [left, setLeft] = useState(0); const [e, setE] = useState("");
   const f = useForm("withdraw", () => { setOpen(false); r.refresh(); });
   useEffect(() => { if (!exp) return; const i = setInterval(() => setLeft(Math.max(0, exp - Date.now())), 1000); return () => clearInterval(i); }, [exp]);
   if (!amount) return null;
   if (!open) return <><button className="btn-ghost w-full" onClick={async () => { setE(""); try { const d = await post("2fa-send", {}); setOpen(true); setExp(d.exp); if (d.devPhrase) setDev(d.devPhrase); } catch (x: any) { setE(x.message); } }}><Icon n="lock" className="w-4 h-4" />Withdraw {naira(amount)} (2FA)</button><Err e={e} /></>;
-  return (<form onSubmit={f.onSubmit} className="space-y-3 rounded-xl bg-paper p-3"><input type="hidden" name="goalId" value={goalId} />
+  return (<form onSubmit={f.onSubmit} className="space-y-3 rounded-xl bg-paper p-3"><input type="hidden" name="goalId" value={goalId} />{source && <><input type="hidden" name="source" value={source} /><input type="hidden" name="amount" value={amount} /></>}
     <p className="text-sm">We emailed a Nigerian 2-word phrase. Expires in <b className="text-navy font-mono">{Math.floor(left / 60000)}:{String(Math.floor(left / 1000) % 60).padStart(2, "0")}</b></p>
     {dev && <p className="chip bg-teal-50 text-teal">Dev (SMTP off): {dev}</p>}
     <div className="grid grid-cols-2 gap-3"><label className="block"><span className="label">Bank</span><select name="bankCode" className="input mt-1.5" required>{BANKS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}</select></label><label className="block"><span className="label">Account no.</span><input name="accountNumber" inputMode="numeric" maxLength={10} className="input mt-1.5" placeholder="10 digits" required /></label></div>
     <PasswordInput name="phrase" label="2FA phrase" placeholder="e.g. owambe kano" help={false} /><Err e={f.error} /><button className="btn-primary w-full" disabled={f.busy}>Confirm withdrawal</button></form>);
 }
-function F({ l, n, label, type = "text", ph }: { l?: any; n: string; label: string; type?: string; ph?: string }) { return <label className="block"><span className="label">{label}</span><input name={n} type={type} defaultValue={l?.[n]} placeholder={ph} className="input mt-1.5" required /></label>; }
-export function ListingForm({ l, states }: { l?: any; states: string[] }) {
+function F({ l, n, label, type = "text", ph, opt, tip, dis, onChange }: { l?: any; n: string; label: string; type?: string; ph?: string; opt?: boolean; tip?: string; dis?: boolean; onChange?: (v: string) => void }) { return <label className="block"><span className="label flex items-center gap-1">{label}{tip && <Tip text={tip} />}</span><input name={n} type={type} step={type === "number" ? "any" : undefined} defaultValue={l?.[n] ?? undefined} placeholder={ph} className="input mt-1.5 disabled:opacity-60" required={!opt} readOnly={dis} onChange={onChange ? (e) => onChange(e.target.value) : undefined} /></label>; }
+export function ListingForm({ l, states, hasPhoto }: { l?: any; states: string[]; hasPhoto: boolean }) {
+  const [cm, setCm] = useState<string>(l?.commerceMode || "BOTH"); const [tn, setTn] = useState(Number(l?.totalNeeded || 0)); const [sn, setSn] = useState(Number(l?.seatsNeeded || 0)); const locked = (l?.seatsTaken || 0) > 0;
   const r = useRouter(); const [imgs, setImgs] = useState<string[]>(() => { const a: string[] = []; for (const f of [l?.img, ...(l?.files || [])]) if (f && /^\/media\/listings\//.test(f) && !a.includes(f)) a.push(f); return a; }); const [up, setUp] = useState(""); const f = useForm("listing-save", () => { r.push("/seller"); r.refresh(); });
   const upload = async (list: FileList) => { const fs = Array.from(list).slice(0, 12 - imgs.length); for (let k = 0; k < fs.length; k++) { setUp(`Uploading ${k + 1}/${fs.length}…`); const fd = new FormData(); fd.append("file", fs[k]); const res = await fetch("/api/upload", { method: "POST", body: fd }); const d = await res.json(); if (!res.ok) return setUp(d.error); setImgs((a) => [...a, d.url]); } setUp(""); };
   const move = (k: number, d: number) => setImgs((a) => { const b = [...a]; const t = k + d; if (t < 0 || t >= b.length) return a; [b[k], b[t]] = [b[t], b[k]]; return b; });
@@ -132,10 +174,18 @@ export function ListingForm({ l, states }: { l?: any; states: string[] }) {
     <F l={l} n="title" label="Title" ph="4-Bed Detached Duplex" />
     <div className="grid grid-cols-2 gap-3"><F l={l} n="city" label="City / town" ph="Umuahia" /><label className="block"><span className="label">State</span><select name="state" defaultValue={l?.state || "Lagos"} className="input mt-1.5">{states.map((s) => <option key={s}>{s}</option>)}</select></label></div>
     <F l={l} n="estate" label="Estate / area" ph="Kraud Gardens, Ubakala Rd" />
-    <div className="grid grid-cols-2 gap-3"><F l={l} n="price" label="Price (₦)" type="number" /><label className="block"><span className="label">Stage</span><select name="status" defaultValue={l?.status || "Completed"} className="input mt-1.5">{["Completed", "Carcass", "Off-plan"].map((s) => <option key={s}>{s}</option>)}</select></label></div>
+    <div className="grid grid-cols-2 gap-3"><F l={l} n="price" label="Price (₦)" type="number" /><label className="block"><span className="label">Stage</span><select name="status" defaultValue={l?.status || "Completed"} className="input mt-1.5">{[["Completed", "Completed"], ["Carcass", "Carcass (Uncompleted)"], ["Off-plan", "Off-plan"]].map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label></div>
     <div className="grid grid-cols-4 gap-3"><F l={l} n="beds" label="Beds" type="number" /><F l={l} n="baths" label="Baths" type="number" /><F l={l} n="sqm" label="m²" type="number" /><F l={l} n="type" label="Type" ph="Duplex" /></div>
+    <div className="rounded-2xl k-hero ring-1 ring-navy/5 p-3 space-y-3"><div className="flex items-center justify-between"><b className="text-navy text-sm">How buyers can take part</b>{locked && <span className="chip wash-gold">Terms locked — co-owners joined</span>}</div><input type="hidden" name="commerceMode" value={cm} />
+      <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-white/70 p-1 text-[13px] font-semibold">{([["INVEST", "Co-own"], ["BUY", "Buy whole"], ["BOTH", "Both"]] as const).map(([v, t]) => <button type="button" key={v} disabled={locked} onClick={() => setCm(v)} className={`h-9 rounded-lg transition duration-200 ${cm === v ? "tab-on" : "text-silver"}`}>{t}</button>)}</div>
+      {cm !== "BUY" && <><label className="block"><span className="label">Timeframe</span><select name="horizon" defaultValue={l?.horizon || "SHORT_6M"} disabled={locked} className="input mt-1.5"><option value="SHORT_6M">Short · 6 months</option><option value="LONG_12_18M">Long · 12–18 months</option></select>{locked && <input type="hidden" name="horizon" value={l?.horizon} />}</label>
+        <div className="grid grid-cols-2 gap-3"><F l={l} n="totalNeeded" label="Total to raise (₦)" type="number" dis={locked} onChange={(v) => setTn(Number(v))} tip="Purchase + completion + maintenance the co-owners fund." /><F l={l} n="seatsNeeded" label="Units" type="number" dis={locked} onChange={(v) => setSn(Number(v))} tip="Number of co-ownership units on offer." /></div>
+        <input type="hidden" name="unitPrice" value={sn > 0 ? Math.ceil(tn / sn) : 0} />{sn > 0 && tn > 0 && <p className="text-xs text-teal">{naira(Math.ceil(tn / sn))} per unit</p>}
+        <div className="grid grid-cols-2 gap-3"><F l={l} n="maintenanceCost" label="Maintenance (₦)" type="number" opt dis={locked} /><F l={l} n="completionCost" label="Completion (₦)" type="number" opt dis={locked} /></div>
+        <div className="grid grid-cols-2 gap-3"><F l={l} n="estimatedProfit" label="Est. total profit (₦)" type="number" dis={locked} tip="Projected profit shared across all units at exit." /><F l={l} n="minProfitMargin" label="Min margin (%)" type="number" opt dis={locked} /></div>
+        <div className="grid grid-cols-2 gap-3"><F l={l} n="insuranceFee" label="Insurance / unit (₦)" type="number" opt ph="Admin default" tip="Leave blank to use Kraud's default." /><F l={l} n="diligenceFee" label="Due diligence (₦)" type="number" opt ph="Admin default" /></div></>}</div>
     <label className="block"><span className="label">Description</span><textarea name="desc" defaultValue={l?.desc} rows={4} className="input mt-1.5 h-auto py-2" required /></label>
-    <Err e={f.error} /><button className="btn-primary w-full" disabled={f.busy}>{l ? "Save & resubmit for review" : "Submit for review"}</button><p className="text-xs text-silver">Listings go live after Kraud moderation (title documents check).</p></form>);
+    {!hasPhoto && <div className="rounded-xl wash-coral p-3 text-sm flex items-center gap-2"><Icon n="camera" className="w-4 h-4" />Add a profile photo or logo on your <Link href="/profile" className="underline font-semibold">Profile</Link> before publishing.</div>}<Err e={f.error} /><button className="btn-primary w-full" disabled={f.busy || !hasPhoto}>{l ? "Save & resubmit for review" : "Submit for review"}</button><p className="text-xs text-silver">Listings go live after Kraud moderation (title documents check).</p></form>);
 }
 export function PlacementBooker({ listings, quotes }: { listings: { id: string; title: string; city: string }[]; quotes: Record<string, Record<string, { daily: number; impressions: number }>> }) {
   const [lid, setLid] = useState(listings[0]?.id || ""); const [slot, setSlot] = useState("search"); const [days, setDays] = useState(7);
@@ -150,4 +200,10 @@ export function PlacementBooker({ listings, quotes }: { listings: { id: string; 
 export function MinRate({ slot, value }: { slot: string; value: number }) {
   const r = useRouter(); const [v, setV] = useState(String(value)); const [busy, setBusy] = useState(false);
   return (<form className="flex gap-1" onSubmit={async (e) => { e.preventDefault(); setBusy(true); await post("min-rate", { slot, value: +v }).catch((x) => alert(x.message)); setBusy(false); r.refresh(); }}><input value={v} onChange={(e) => setV(e.target.value)} inputMode="numeric" className="input h-8 w-24 text-xs px-2" /><button className="btn-ghost h-8 px-2 text-xs" disabled={busy}>Set</button></form>);
+}
+export function SettingsForm({ values, labels }: { values: Record<string, string | number>; labels: Record<string, string> }) {
+  const r = useRouter(); const [v, setV] = useState(values); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState(""); const [e, setE] = useState("");
+  return (<form className="space-y-3" onSubmit={async (x) => { x.preventDefault(); setBusy(true); setE(""); setMsg(""); try { await post("settings-save", v); setMsg("Saved"); r.refresh(); } catch (y: any) { setE(y.message); } setBusy(false); }}>
+    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{Object.keys(values).map((k) => <label key={k} className="block"><span className="label">{labels[k] || k}</span><input className="input mt-1.5" value={String(v[k])} inputMode={typeof values[k] === "number" ? "decimal" : undefined} onChange={(y) => setV((o) => ({ ...o, [k]: typeof values[k] === "number" ? y.target.value.replace(/[^\d.]/g, "") : y.target.value }))} /></label>)}</div>
+    <div className="flex items-center gap-3"><button className="btn-teal" disabled={busy}>{busy ? "Saving…" : "Save settings"}</button>{msg && <span className="text-xs text-teal k-pop">{msg}</span>}<Err e={e} /></div></form>);
 }

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "./Icon";
-const TABS = [["/explore", "Home", "home"], ["/investments", "Investments", "chart"], ["/savings", "Savings", "piggy"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
+const TABS = [["/explore", "Home", "home"], ["/investments", "Portfolio", "chart"], ["/savings", "Savings", "piggy"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
 const SELLER_TABS = [["/explore", "Home", "home"], ["/seller", "Seller", "grid"], ["/investments", "Portfolio", "chart"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
 export function BottomNav({ seller }: { seller?: boolean }) {
   const p = usePathname(); const tabs = (seller ? SELLER_TABS : TABS).map((t) => t[0] === "/explore" ? (["/immersive", "Discover", "expand"] as const) : t);
@@ -25,7 +25,7 @@ export function SideNav({ admin, seller }: { admin: boolean; seller?: boolean })
       <Link href="/" className="flex items-center gap-2 px-2 py-3"><img src="/logo.png" alt="Kraud" className="h-9 w-auto" /></Link>
       <div className="mt-4 space-y-1">{items.map(([href, label, ic]) => (
         <Link key={href} href={href} className={`flex items-center gap-3 rounded-xl px-3 h-11 text-sm font-medium ${p.startsWith(href) ? "bg-navy text-white" : "text-navy hover:bg-navy-50"}`}><Icon n={ic} />{label}</Link>))}</div>
-      <div className="mt-auto text-[11px] text-silver px-2">Escrow-protected · Monnify payments</div>
+      <div className="mt-auto text-[11px] text-silver px-2">Own Together. Grow Together.</div>
     </aside>
   );
 }

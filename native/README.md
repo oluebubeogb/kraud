@@ -16,4 +16,4 @@ python3 icons.py                                   # (re)generate icons + splash
 ## Notes
 - `server.allowNavigation` includes `*.monnify.com` so the Monnify checkout opens in-app and redirects back to `/pay/return`.
 - App id `ng.kraud.app`, name "Kraud". Change in `capacitor.config.ts` before the first store upload.
-- Store review: Apple requires the app to offer value beyond a website — Kraud's account, escrow and chat features qualify; include a demo login for reviewers.
+- Store review: Apple requires the app to offer value beyond a website — Kraud's account, co-ownership portfolio, wallet and chat features qualify; include a demo login for reviewers.

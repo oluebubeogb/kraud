@@ -6,7 +6,7 @@ export const SEED_LISTINGS: SeedListing[] = [
   { id: "lk-02", title: "4-Bed Terrace + BQ", city: "Lagos", estate: "Ikate, Lekki Phase 1", state: "Lagos", price: 165_000_000, beds: 4, baths: 5, sqm: 380, status: "Carcass", type: "Terrace", img: u("photo-1600596542815-ffad4c1539a9"), seller: "s1", sellerName: "Adebayo Homes", featured: ["recommended"], desc: "Carcass stage — finish to your taste. Ideal entry for investors; 30% upfront, staged payment plan." },
   { id: "ik-03", title: "3-Bed Luxury Apartment", city: "Lagos", estate: "Banana Island, Ikoyi", state: "Lagos", price: 720_000_000, beds: 3, baths: 4, sqm: 410, status: "Completed", type: "Apartment", img: u("photo-1600585154340-be6161a56a0c"), seller: "s2", sellerName: "Ikoyi Prime Realty", featured: ["sidebar"], desc: "Lagoon views, concierge, gym and pool. Service charge inclusive for year one." },
   { id: "ab-04", title: "6-Bed Mansion with Pool", city: "Abuja", estate: "Maitama II", state: "FCT", price: 950_000_000, beds: 6, baths: 7, sqm: 900, status: "Completed", type: "Mansion", img: u("photo-1512917774080-9991f1c4c750"), seller: "s2", sellerName: "Ikoyi Prime Realty", featured: ["immersive","footer"], desc: "Diplomatic-zone mansion; C of O, staff quarters, generator house, solar backup." },
-  { id: "ab-05", title: "4-Bed Semi-Detached", city: "Abuja", estate: "Gwarinpa Estate", state: "FCT", price: 145_000_000, beds: 4, baths: 4, sqm: 320, status: "Off-plan", type: "Semi-detached", img: u("photo-1570129477492-45c003edd2be"), seller: "s3", sellerName: "Capital Crest", desc: "Off-plan with 18-month delivery. Escrow-protected milestone payments." },
+  { id: "ab-05", title: "4-Bed Semi-Detached", city: "Abuja", estate: "Gwarinpa Estate", state: "FCT", price: 145_000_000, beds: 4, baths: 4, sqm: 320, status: "Off-plan", type: "Semi-detached", img: u("photo-1570129477492-45c003edd2be"), seller: "s3", sellerName: "Capital Crest", desc: "Off-plan with 18-month delivery. Milestone-based build with insured co-owner units." },
   { id: "ph-06", title: "4-Bed Detached Duplex", city: "Port Harcourt", estate: "GRA Phase 2", state: "Rivers", price: 210_000_000, beds: 4, baths: 5, sqm: 450, status: "Completed", type: "Duplex", img: u("photo-1564013799919-ab600027ffc6"), seller: "s3", sellerName: "Capital Crest", featured: ["recommended"], desc: "Quiet GRA close; fully fitted kitchen, 2 sitting rooms, gatehouse." },
   { id: "ph-07", title: "3-Bed Bungalow", city: "Port Harcourt", estate: "Rumuola Gardens", state: "Rivers", price: 68_000_000, beds: 3, baths: 3, sqm: 240, status: "Carcass", type: "Bungalow", img: u("photo-1580587771525-78b9dba3b914"), seller: "s4", sellerName: "Umuahia Estates Ltd", desc: "Carcass bungalow on full plot. Roofed, plastered; finishing estimate ₦18M." },
   { id: "um-08", title: "5-Bed Duplex, Gated Estate", city: "Umuahia", estate: "Kraud Gardens, Ubakala Rd", state: "Abia", price: 95_000_000, beds: 5, baths: 5, sqm: 480, status: "Completed", type: "Duplex", img: u("photo-1605276374104-dee2a0ed3cd6"), seller: "s4", sellerName: "Umuahia Estates Ltd", featured: ["search","recommended"], desc: "Flagship Kraud estate in Umuahia — gated, paved roads, estate water and security." },
@@ -16,4 +16,19 @@ export const SEED_LISTINGS: SeedListing[] = [
 ];
 export const SEED_SELLERS: Record<string, { username: string; email: string }> = { s1: { username: "adebayohomes", email: "sales@adebayo.demo.kraud.ng" }, s2: { username: "ikoyiprime", email: "desk@ikoyiprime.demo.kraud.ng" }, s3: { username: "capitalcrest", email: "hello@capitalcrest.demo.kraud.ng" }, s4: { username: "umuahiaestates", email: "info@umuahia.demo.kraud.ng" } };
 export const STATUSES = ["Completed", "Carcass", "Off-plan"];
+export const STATUS_LABEL: Record<string, string> = { Completed: "Completed", Carcass: "Carcass (Uncompleted)", "Off-plan": "Off-plan" };
+/** Co-own raise terms for seed listings: [mode, horizon, seats, completionCost, maintenanceCost, marginPct, raisedSeats]. */
+export const SEED_DEALS: Record<string, [("INVEST" | "BUY" | "BOTH"), ("SHORT_6M" | "LONG_12_18M"), number, number, number, number, number]> = {
+  "lk-01": ["BOTH", "LONG_12_18M", 100, 0, 6_000_000, 18, 34],
+  "lk-02": ["INVEST", "SHORT_6M", 50, 35_000_000, 2_000_000, 22, 41],
+  "ik-03": ["BUY", "LONG_12_18M", 0, 0, 0, 0, 0],
+  "ab-04": ["BOTH", "LONG_12_18M", 200, 0, 10_000_000, 15, 12],
+  "ab-05": ["INVEST", "LONG_12_18M", 60, 40_000_000, 1_500_000, 25, 27],
+  "ph-06": ["BOTH", "SHORT_6M", 40, 0, 3_000_000, 14, 0],
+  "ph-07": ["INVEST", "SHORT_6M", 20, 18_000_000, 800_000, 28, 15],
+  "um-08": ["BOTH", "LONG_12_18M", 40, 0, 2_000_000, 16, 22],
+  "um-09": ["INVEST", "SHORT_6M", 20, 14_000_000, 500_000, 30, 18],
+  "um-10": ["BUY", "SHORT_6M", 0, 0, 0, 0, 0],
+  "en-11": ["INVEST", "LONG_12_18M", 50, 30_000_000, 1_200_000, 24, 9],
+};
 export const NG_STATES = ["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT","Gombe","Imo","Jigawa","Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo","Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"];

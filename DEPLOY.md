@@ -42,3 +42,9 @@ With empty SMTP and Monnify keys outside production you get a console mail fallb
 
 ## Native apps
 See `native/README.md` (Capacitor Android + iOS shells pointed at `APP_URL`).
+
+## Harmonized co-own release (Nov 2026)
+- New migration `20261102170000_harmonized_coown` (applied automatically by `prisma migrate deploy` at container start). It adds co-own listing fields, InvestmentUnit, UnitSale, SavingsVault, WalletTx, Referral, user wallet/photo/referral code, and converts any legacy `HELD` payments to `PAID`. There is **no escrow** step any more.
+- Existing users get a referral code lazily on first Profile view; seed data (Admin → Add seed data) includes co-own samples.
+- Fees, insurer name, referral reward and vault rates are edited in **Admin → Fees, rates & rewards** (stored in the `Setting` table; no env vars needed).
+- Wallet payments settle instantly; Monnify payments still confirm via the existing webhook `/api/monnify/webhook`.
