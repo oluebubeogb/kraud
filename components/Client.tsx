@@ -137,11 +137,11 @@ export function KycForm() {
   const r = useRouter(); const [st, setSt] = useState(""); const f = useForm("kyc", (d) => { setSt(d.status); r.refresh(); });
   if (st === "PENDING_REVIEW") return <p className="chip bg-silver-200 text-navy">Submitted — under review</p>;
   return (<form onSubmit={f.onSubmit} className="space-y-3">
-    <label className="block"><span className="label">Full legal name (as on BVN)</span><input name="legalName" className="input mt-1.5" placeholder="Ada Chioma Okafor" required /></label>
+    <label className="block"><span className="label inline-flex items-center gap-1.5">Full Name<Tip text="Name as it appears on your NIN and BVN." /></span><input name="legalName" className="input mt-1.5" placeholder="Ada Chioma Okafor" required /></label>
     <div className="grid grid-cols-2 gap-3"><label className="block"><span className="label">Date of birth</span><input name="dob" type="date" className="input mt-1.5" required /></label><label className="block"><span className="label">Phone</span><input name="phone" inputMode="tel" className="input mt-1.5" placeholder="0803…" required /></label></div>
     <div className="grid grid-cols-2 gap-3"><label className="block"><span className="label">NIN</span><input name="nin" inputMode="numeric" maxLength={11} pattern="\d{11}" className="input mt-1.5" placeholder="11 digits" required /></label>
     <label className="block"><span className="label">BVN</span><input name="bvn" inputMode="numeric" maxLength={11} pattern="\d{11}" className="input mt-1.5" placeholder="11 digits" required /></label></div>
-    <Err e={f.error} /><button className="btn-primary w-full" disabled={f.busy}>{f.busy ? "Checking…" : "Verify identity (one-off)"}</button><p className="text-xs text-silver">Encrypted at rest; only the last 4 digits are ever shown. Asked once — never again.</p></form>);
+    <Err e={f.error} /><button className="btn-primary w-full" disabled={f.busy}>{f.busy ? "Checking…" : "Verify Identity"}</button><p className="flex justify-center"><Tip text="Encrypted at rest; only the last 4 digits are ever shown. Asked once — never again." /></p></form>);
 }
 export function TopUp({ id }: { id: string }) {
   return (<div className="flex gap-2">{[50000, 250000, 1000000].map((a) => <PayRedirect key={a} action="topup" body={{ id, amount: a }} className="btn-ghost w-full px-2 text-xs" label={"+" + naira(a)} />)}</div>);

@@ -1,3 +1,4 @@
+import FacetLink from "@/components/FacetLink";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Icon from "@/components/Icon";
@@ -18,11 +19,11 @@ export default async function Prop({ params }: { params: Promise<{ id: string }>
   return (<div className="lg:px-8 lg:pt-6">
     <div className="relative"><Gallery id={l.id} imgs={photos(l).length ? photos(l) : [l.img]} alt={l.title}>
       <Link href="/explore" className="absolute top-[max(env(safe-area-inset-top),14px)] left-4 w-10 h-10 grid place-items-center rounded-full bg-white/90 text-navy"><Icon n="back" /></Link>
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 p-5 text-white"><div className="flex gap-1.5 flex-wrap"><StatusChip s={l.status} /><ModeChip d={d} dark /></div><h1 className="mt-2 text-xl lg:text-3xl font-extrabold">{l.title}</h1><p className="text-white/80 text-sm flex items-center gap-1"><Icon n="pin" className="w-4 h-4" />{l.estate}, {l.city}, {l.state}</p></div></Gallery></div>
-    <div className="px-4 lg:px-0 -mt-4 relative z-10 lg:mt-6 grid lg:grid-cols-3 gap-4">
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 p-5 text-white"><h1 className="text-xl lg:text-3xl font-extrabold">{l.title}</h1><p className="text-white/80 text-sm flex items-center gap-1 mb-4"><Icon n="pin" className="w-4 h-4" />{l.estate}, {l.city}, {l.state}</p></div></Gallery></div>
+    <div className="px-4 lg:px-0 mt-2 relative z-10 lg:mt-6 grid lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-4">
-        <div className="card p-4 grid grid-cols-3 text-center text-sm">{[["bed", l.beds + " beds"], ["bath", l.baths + " baths"], ["area", l.sqm + " m²"]].map(([i, t]) => <div key={t} className="flex flex-col items-center gap-1 text-navy"><Icon n={i} />{t}</div>)}</div>
-        <div className="card p-4"><h2 className="font-bold text-navy">About this property</h2><p className="text-sm mt-1 text-navy/80 leading-relaxed">{l.desc}</p><div className="mt-3"><Trust compact /></div></div>
+        <div className="card p-4 grid grid-cols-3 text-center text-sm">{[["bed", l.beds + " beds"], ["bath", l.baths + " baths"], ["area", l.sqm + " m²"]].map(([i, t]) => <FacetLink key={t} q={t.replace(" m²", " m2")} className="flex flex-col items-center gap-1 text-navy rounded-xl py-1 hover:bg-navy-50 transition-colors"><Icon n={i} />{t}</FacetLink>)}</div>
+        <div className="card p-4"><h2 className="font-bold text-navy">About this property</h2><div className="flex gap-1.5 flex-wrap mt-2"><StatusChip s={l.status} /><ModeChip d={d} /></div><p className="text-sm mt-1 text-navy/80 leading-relaxed">{l.desc}</p><div className="mt-3"><Trust compact /></div></div>
         <div className="card p-4 space-y-3"><div className="flex items-center justify-between"><h2 className="font-bold text-navy">The deal</h2><span className="chip wash-gold">{HORIZON[d.horizon].label}</span></div><DealSheet d={d} />
           {d.mode !== "BUY" && d.seats > 0 && <div className="grid grid-cols-3 gap-2 text-center text-xs">{([["Needed", d.total, "wash-blue"], ["Maintenance", l.deal.maintenanceCost, "wash-cyan"], ["Completion", l.deal.completionCost, "wash-peach"]] as const).map(([k, v, w]) => <div key={k} className={`k-tile ${w}`}><div className="opacity-70">{k}</div><b>{naira(v)}</b></div>)}</div>}
           <RiskLine /></div>
@@ -33,8 +34,8 @@ export default async function Prop({ params }: { params: Promise<{ id: string }>
     </div>
     {!mine && <div className={`lg:hidden fixed ${u ? "bottom-16" : "bottom-0"} inset-x-0 z-30 bg-white border-t border-silver-200 px-4 py-2.5 flex items-center gap-2`} style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
       <div className="flex-1 min-w-0"><div className="text-[11px] text-silver">{canInv ? "Per unit" : "Price"}</div><div className="font-extrabold text-navy truncate">{naira(canInv ? d.unit : l.price)}</div></div>
-      {u ? <><ActionButton action="chat-start" body={{ listingId: l.id }} then="/chat/:id" className="btn-ghost w-11 px-0"><Icon n="chat" /></ActionButton>
-      <ActionButton action="goal" body={{ listingId: l.id }} then="/savings" className="btn-ghost w-11 px-0"><Icon n="piggy" /></ActionButton></> : <Link href="/signup" className="btn-ghost px-3 text-sm">Sign up</Link>}
+      {u ? <><ActionButton action="chat-start" body={{ listingId: l.id }} then="/chat/:id" className="btn-ghost w-12 h-12 px-0"><Icon n="chat" className="w-6 h-6" /></ActionButton>
+      <ActionButton action="goal" body={{ listingId: l.id }} then="/savings" className="btn-ghost w-12 h-12 px-0"><Icon n="piggy" className="w-6 h-6" /></ActionButton></> : <Link href="/signup" className="btn-ghost px-3 text-sm">Sign up</Link>}
       {primary ? <Link href={primary.href} className="btn-primary px-6">{primary.t}</Link> : <span className="chip wash-coral">Closed</span>}</div>}
     <div className="h-20 lg:hidden" /></div>);
 }

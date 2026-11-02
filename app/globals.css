@@ -39,7 +39,8 @@ html,body{background:#F7F8FA;color:#0B1B33;-webkit-tap-highlight-color:transpare
 .k-tile{@apply rounded-2xl p-4 ring-1 ring-black/[.03] transition duration-200 hover:-translate-y-0.5 hover:shadow-card}
 .k-bar{height:6px;border-radius:999px;background:rgba(0,36,84,.08);overflow:hidden}
 .k-bar>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#1F7A72,#30909C);transition:width .32s cubic-bezier(.2,.8,.2,1)}
-.k-tip{position:absolute;z-index:60;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;width:max-content;max-width:240px;white-space:normal;text-align:left}
+.k-tip-wrap:hover,.k-tip-wrap:focus-within,.k-tip-wrap[data-open="1"]{z-index:9999}
+.k-tip{position:absolute;z-index:9999;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;width:max-content;max-width:240px;white-space:normal;text-align:left}
 .k-tip-wrap:hover .k-tip,.k-tip-wrap:focus-within .k-tip,.k-tip-wrap[data-open="1"] .k-tip{opacity:1;transform:translate(-50%,0)}
 @keyframes k-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .k-pop{animation:k-pop .26s cubic-bezier(.2,.8,.2,1) both}

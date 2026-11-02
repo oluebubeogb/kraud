@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import Icon from "./Icon";
 const TABS = [["/explore", "Home", "home"], ["/investments", "Portfolio", "chart"], ["/savings", "Savings", "piggy"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
 const SELLER_TABS = [["/explore", "Home", "home"], ["/seller", "Seller", "grid"], ["/investments", "Portfolio", "chart"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
@@ -18,14 +19,17 @@ export function BottomNav({ seller }: { seller?: boolean }) {
   );
 }
 export function SideNav({ admin, seller }: { admin: boolean; seller?: boolean }) {
-  const p = usePathname();
+  const p = usePathname(); const [c, setC] = useState(false);
+  useEffect(() => { setC(localStorage.getItem("k-side") === "1"); }, []);
+  const tog = () => setC((v) => { localStorage.setItem("k-side", v ? "0" : "1"); return !v; });
   const items = [...TABS, ...(seller ? [["/seller", "Seller dashboard", "grid"]] : []), ["/reminders", "Reminders", "bell"], ...(admin ? [["/admin", "Admin", "shield"]] : [])] as [string, string, string][];
   return (
-    <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-silver-200 bg-white h-screen sticky top-0 p-4">
-      <Link href="/" className="flex items-center gap-2 px-2 py-3"><img src="/logo.png" alt="Kraud" className="h-9 w-auto" /></Link>
+    <aside className={`hidden lg:flex flex-col ${c ? "w-[76px]" : "w-60"} shrink-0 border-r border-silver-200 bg-white h-screen sticky top-0 p-4 transition-[width] duration-300 ease-out relative`}>
+      <button onClick={tog} aria-label={c ? "Expand sidebar" : "Collapse sidebar"} className="absolute -right-3 top-8 z-50 w-6 h-6 rounded-full bg-white border border-silver-200 shadow-card grid place-items-center text-navy hover:bg-navy-50 transition"><Icon n={c ? "chevr" : "chevl"} className="w-3.5 h-3.5" /></button>
+      <Link href="/" className="flex items-center gap-2 px-2 py-3">{c ? <img src="/icons/icon-192.png" alt="Kraud" className="h-9 w-9 rounded-lg" /> : <img src="/logo.png" alt="Kraud" className="h-9 w-auto" />}</Link>
       <div className="mt-4 space-y-1">{items.map(([href, label, ic]) => (
-        <Link key={href} href={href} className={`flex items-center gap-3 rounded-xl px-3 h-11 text-sm font-medium ${p.startsWith(href) ? "bg-navy text-white" : "text-navy hover:bg-navy-50"}`}><Icon n={ic} />{label}</Link>))}</div>
-      <div className="mt-auto text-[11px] text-silver px-2">Own Together. Grow Together.</div>
+        <Link key={href} href={href} title={c ? label : undefined} className={`flex items-center gap-3 rounded-xl px-3 h-11 text-sm font-medium overflow-hidden whitespace-nowrap ${c ? "justify-center" : ""} ${p.startsWith(href) ? "bg-navy text-white" : "text-navy hover:bg-navy-50"}`}><Icon n={ic} className="shrink-0" />{!c && label}</Link>))}</div>
+      {!c && <div className="mt-auto text-[11px] text-silver px-2">Own Together. Grow Together.</div>}
     </aside>
   );
 }
