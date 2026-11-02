@@ -44,3 +44,10 @@ html,body{background:#F7F8FA;color:#0B1B33;-webkit-tap-highlight-color:transpare
 @keyframes k-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .k-pop{animation:k-pop .26s cubic-bezier(.2,.8,.2,1) both}
 .tab-on{@apply bg-white text-navy shadow-card}
+/* ——— Grok-like type: Inter, weight over size ——— */
+html{font-feature-settings:"cv11","ss01","ss03";letter-spacing:-.011em}
+h1,h2,h3,b,strong{letter-spacing:-.018em}
+.font-extrabold{font-weight:700!important}
+@keyframes k-hint{0%{opacity:0;transform:translateY(6px)}12%,88%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
+.k-hint{animation:k-hint 2.4s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){.k-hint{animation:none}}

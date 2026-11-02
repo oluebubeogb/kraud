@@ -29,8 +29,6 @@ export function FeeLine({ insurance, diligence, insurer }: { insurance: number; 
 }
 export const RiskLine = () => <p className="text-[11px] text-silver flex items-center gap-1.5"><Icon n="info" className="w-3.5 h-3.5 shrink-0" />Property values can fall; profits are estimates, not guarantees.</p>;
 export function Avatar({ src, name, size = 36, className = "" }: { src?: string | null; name: string; size?: number; className?: string }) {
-  const ini = name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   // eslint-disable-next-line @next/next/no-img-element
-  return src ? <img src={src} alt={name} width={size} height={size} className={`rounded-full object-cover ring-2 ring-white shrink-0 ${className}`} style={{ width: size, height: size }} />
-    : <span className={`rounded-full grid place-items-center font-bold text-white bg-gradient-to-br from-navy to-teal ring-2 ring-white shrink-0 ${className}`} style={{ width: size, height: size, fontSize: size * 0.38 }}>{ini}</span>;
+  return <img src={src || "/avatars/default.webp"} alt={name} width={size} height={size} className={`rounded-full object-cover ring-2 ring-white shrink-0 ${className}`} style={{ width: size, height: size }} decoding="async" />;
 }

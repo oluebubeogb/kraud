@@ -39,6 +39,8 @@ const P: Record<string, string> = {
   coins: "M8 8a5 2 0 1 0 0-.01M3 8v4c0 1.1 2.2 2 5 2M3 12v4c0 1.1 2.2 2 5 2M13 12a5 2 0 1 0 10 0 5 2 0 1 0-10 0M13 12v4c0 1.1 2.2 2 5 2s5-.9 5-2v-4",
   camera: "M4 8h3l2-3h6l2 3h3v12H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
   key: "M15 7a4 4 0 1 1-3.5 6L4 20.5V17h3v-3h3l1.5-1.5A4 4 0 0 1 15 7z",
+  phone: "M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z",
+  whatsapp: "M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4zM9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 1c-1.2-.5-2.5-1.8-3-3l1-1-1-2z",
   sparkle: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6",
 };
 export default function Icon({ n, className = "w-5 h-5" }: { n: string; className?: string }) {

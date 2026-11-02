@@ -23,7 +23,7 @@ export default async function I() {
   return (<div><PageHead title="Portfolio" sub="Own Together. Grow Together." />
     <div className="px-4 lg:px-8 space-y-5">
       <div className="rounded-3xl bg-gradient-to-br from-navy via-navy to-teal text-white p-5 relative overflow-hidden k-rise"><div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-teal/40 blur-2xl" />
-        <div className="text-xs text-white/60 flex items-center gap-1">Total expected profit<Tip text="Sum of projected profit on your active units. Estimates, not guarantees." /></div><div className="text-3xl font-extrabold mt-1">{naira(profit)}</div>
+        <div className="text-xs text-white/60 flex items-center gap-1">Total expected profit<Tip text="Sum of projected profit on your active units. Estimates, not guarantees." /></div><div className="text-2xl font-extrabold mt-1">{naira(profit)}</div>
         <div className="mt-1 text-sm text-white/70">on {naira(invested)} co-owned · wallet {naira(Number(u.walletBalance))}</div></div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{tiles.map(([k, v, w, i]) => <div key={k} className={`k-tile ${w} flex items-center gap-3`}><span className="w-9 h-9 rounded-xl bg-white/70 grid place-items-center"><Icon n={i} className="w-4 h-4" /></span><div><div className="text-[11px] opacity-75">{k}</div><b className="text-base">{v}</b></div></div>)}</div>
       <section><h2 className="font-bold text-navy mb-2">Your units</h2>

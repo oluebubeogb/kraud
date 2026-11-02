@@ -1,17 +1,17 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Tip from "./Tip";
 import Icon from "./Icon";
 export function PasswordInput({ name = "password", placeholder = "At least 8 characters", label = "Password", help = true }: { name?: string; placeholder?: string; label?: string; help?: boolean }) {
   const [show, setShow] = useState(false);
   return (
     <label className="block">
-      <span className="label">{label}</span>
+      <span className="label inline-flex items-center gap-1.5">{label}{help && <Tip text="At least 8 characters, with a number or symbol. We email a Nigerian-word code for verification and resets." />}</span>
       <div className="relative mt-1.5">
         <input name={name} type={show ? "text" : "password"} autoComplete="off" autoCapitalize="none" placeholder={placeholder} className="input pr-12" required />
         <button type="button" onClick={() => setShow(!show)} aria-label={show ? "Hide" : "Show"} className="absolute right-1 top-1 h-10 w-10 grid place-items-center text-silver hover:text-navy"><Icon n={show ? "eyeoff" : "eye"} /></button>
       </div>
-      {help && <span className="mt-1 block text-xs text-silver">At least 8 characters, with a number or symbol. We email you a Nigerian-word code for verification and resets.</span>}
     </label>
   );
 }
