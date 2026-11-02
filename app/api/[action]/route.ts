@@ -124,9 +124,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
         const u = seller(); const price = Math.round(Number(b.price)); const n = (v: unknown) => Math.max(0, Math.min(999, Math.round(Number(v) || 0)));
         const data = { title: str(b.title, 100), city: str(b.city, 40), estate: str(b.estate, 100), state: str(b.state, 40), price: BigInt(price), beds: n(b.beds), baths: n(b.baths), sqm: Math.max(0, Math.round(Number(b.sqm) || 0)), status: STATUSES.includes(b.status) ? b.status : "Completed", type: str(b.type, 40) || "House", desc: str(b.desc, 2000), img: str(b.img, 300) };
         if (!data.title || !data.city || !data.estate || !data.state || !(price >= 100000)) return err("Fill title, city, estate, state and a price (≥ ₦100,000)");
+        let imgs: string[] = []; try { imgs = (Array.isArray(b.imgs) ? b.imgs : JSON.parse(String(b.imgs || "[]"))).map((x: unknown) => str(x, 300)).filter((x: string) => x.startsWith("/media/listings/")).slice(0, 12); } catch {}
+        if (data.img && !imgs.includes(data.img)) imgs.unshift(data.img); if (imgs.length) data.img = imgs[0];
         if (data.img && !data.img.startsWith("/media/listings/")) return err("Upload a photo");
-        if (b.id) { const l = await prisma.listing.findFirst({ where: { id: str(b.id), sellerId: u.id } }); if (!l) return err("Not your listing", 403); await prisma.listing.update({ where: { id: l.id }, data: { ...data, img: data.img || l.img, moderation: "Pending" } }); return j({ ok: true, id: l.id }); }
-        const l = await prisma.listing.create({ data: { ...data, sellerId: u.id, moderation: "Pending", files: data.img ? [data.img] : [] } }); return j({ ok: true, id: l.id });
+        if (b.id) { const l = await prisma.listing.findFirst({ where: { id: str(b.id), sellerId: u.id } }); if (!l) return err("Not your listing", 403); await prisma.listing.update({ where: { id: l.id }, data: { ...data, img: data.img || l.img, files: imgs.length ? [...imgs, ...l.files.filter((f) => !f.startsWith("/media/listings/"))] : l.files, moderation: "Pending" } }); return j({ ok: true, id: l.id }); }
+        const l = await prisma.listing.create({ data: { ...data, sellerId: u.id, moderation: "Pending", files: imgs } }); return j({ ok: true, id: l.id });
       }
       case "listing-delete": { const u = seller(); const l = await prisma.listing.findFirst({ where: { id: str(b.id), sellerId: u.id }, include: { payments: { where: { status: "HELD" } } } }); if (!l) return err("Not your listing", 403); if (l.payments.length) return err("A buyer's funds are in escrow on this listing"); await prisma.listing.delete({ where: { id: l.id } }); return j({ ok: true }); }
       case "placement-book": {

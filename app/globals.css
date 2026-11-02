@@ -28,3 +28,4 @@ html,body{background:#F7F8FA;color:#0B1B33;-webkit-tap-highlight-color:transpare
 .k-pill::after{content:"";position:absolute;inset:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:translateX(-120%);pointer-events:none}
 .k-pill:hover::after{animation:k-shine .9s ease}
 @media (prefers-reduced-motion:reduce){.k-rise,.k-pill::after{animation:none!important}.k-card,.k-card:hover,.k-card .k-img img,.k-icon,.k-pill{transition:none!important;transform:none!important}}
+@keyframes kfade{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}

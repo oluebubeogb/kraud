@@ -4,6 +4,8 @@ import { prisma, UPLOAD_DIR } from "./db";
 import { SEED_LISTINGS, SEED_SELLERS, type SeedListing } from "./listings";
 import { hashPw } from "./auth";
 import { encrypt } from "./secure";
+/** Interior/portrait shots so seed galleries mix orientations. */
+const EXTRA = ["photo-1600607687939-ce8a6c25118c", "photo-1600566753190-17f0baa2a6c3", "photo-1502005229762-cf1b2da7c5d6"].map((id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&h=1600&q=70`);
 export const SEED_DIR = path.join(UPLOAD_DIR, "seed");
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "and", "<": "", ">": "", '"': "" })[c]!);
 const cover = (l: SeedListing) => `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#002454"/><stop offset="1" stop-color="#1F7A72"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/><g fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="6"><path d="M300 560 L600 320 L900 560 Z"/><rect x="380" y="560" width="440" height="160"/></g><text x="60" y="740" font-family="sans-serif" font-size="44" fill="#fff" fill-opacity=".85">${esc(l.city + " · " + l.estate)}</text></svg>`;
@@ -20,9 +22,10 @@ export async function seedAdd() {
   for (const l of SEED_LISTINGS) {
     const cov = path.join(SEED_DIR, `${l.id}-cover.svg`), meta = path.join(SEED_DIR, `${l.id}.json`);
     fs.writeFileSync(cov, cover(l)); fs.writeFileSync(meta, JSON.stringify(l, null, 1)); files += 2;
-    if (await prisma.listing.findUnique({ where: { id: l.id } })) continue;
+    const k = SEED_LISTINGS.indexOf(l); const pool = SEED_LISTINGS.map((x) => x.img).filter((x) => x !== l.img); const gallery = [l.img, ...[0, 3, 6].map((o) => pool[(k + o) % pool.length]), ...EXTRA.slice(k % 2, (k % 2) + 2)];
+    if (await prisma.listing.findUnique({ where: { id: l.id } })) { await prisma.listing.update({ where: { id: l.id }, data: { files: [...gallery, cov, meta] } }); continue; }
     const { seller, sellerName, featured, ...rest } = l;
-    await prisma.listing.create({ data: { ...rest, price: BigInt(l.price), sellerId: "seed_" + seller, featured: featured ?? [], moderation: "Approved", seed: true, files: [cov, meta] } });
+    await prisma.listing.create({ data: { ...rest, price: BigInt(l.price), sellerId: "seed_" + seller, featured: featured ?? [], moderation: "Approved", seed: true, files: [...gallery, cov, meta] } });
     added++;
   }
   return { added, files };

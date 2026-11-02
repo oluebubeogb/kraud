@@ -1,14 +1,16 @@
+import { FeaturedTag } from "./ViewToggle";
+import { photos } from "@/lib/photos";
 import Link from "next/link";
 import Icon from "./Icon";
 import { Cover } from "./Ui";
 import { nairaShort } from "@/lib/format";
 import type { L as Listing } from "@/lib/q";
 export const StatusChip = ({ s }: { s: string }) => <span className={`chip ${s === "Completed" ? "bg-teal-50 text-teal" : s === "Carcass" ? "bg-navy-50 text-navy" : "bg-silver-200 text-navy"}`}>{s}</span>;
-export function ListingCard({ l, compact, i = 0 }: { l: Listing; compact?: boolean; i?: number }) {
+export function ListingCard({ l, compact, i = 0, feat }: { l: Listing; compact?: boolean; i?: number; feat?: boolean }) {
   return (
     <Link href={`/property/${l.id}`} className="group card k-card k-rise overflow-hidden block" style={{ ["--i" as any]: i % 12 }}>
       <div className="relative k-img"><Cover id={l.id} src={l.img} alt={l.title} className={compact ? "h-32" : "h-44"} />
-        <div className="absolute bottom-2 left-2"><StatusChip s={l.status} /></div></div>
+        {feat && <div className="absolute top-2 left-2 z-10"><FeaturedTag /></div>}{photos(l).length > 1 && <span className="absolute top-2 right-2 z-10 chip bg-black/45 text-white text-[10px] backdrop-blur">1/{photos(l).length}</span>}<div className="absolute bottom-2 left-2"><StatusChip s={l.status} /></div></div>
       <div className="p-3">
         <div className="text-[17px] font-bold text-navy">{nairaShort(l.price)}</div>
         <div className="text-sm font-medium truncate">{l.title}</div>
