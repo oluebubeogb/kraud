@@ -8,11 +8,24 @@ import { naira } from "@/lib/format";
 import Tip from "./Tip";
 import { calcFees, type FeeCfg } from "@/lib/deal";
 export function VerifyBanner({ email }: { email: string }) {
-  const [link, setLink] = useState(""); const [sent, setSent] = useState(false);
-  return (<div className="mx-4 lg:mx-8 mt-3 rounded-xl bg-navy text-white px-4 py-3 text-sm flex flex-wrap items-center gap-2">
-    <Icon n="shield" className="w-4 h-4 text-teal-50" /><span className="flex-1 min-w-[12rem]">Verify <b>{email}</b> to unlock buying & withdrawals.</span>
-    <button className="underline underline-offset-2" onClick={async () => { const d = await post("resend-verify", {}); setSent(true); if (d.devLink) setLink(d.devLink); }}>{sent ? "Sent ✓" : "Resend"}</button>
-    {link && <a href={link} className="chip bg-teal text-white">Dev: open verify</a>}</div>);
+  const r = useRouter(); const [open, setOpen] = useState(false); const [link, setLink] = useState(""); const [sent, setSent] = useState(false);
+  const [p, setP] = useState(""); const [e, setE] = useState(""); const [busy, setBusy] = useState(false);
+  useEffect(() => { if (!open) return; const k = (x: KeyboardEvent) => x.key === "Escape" && setOpen(false); window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [open]);
+  const resend = async () => { setE(""); try { const d = await post("resend-verify", {}); setSent(true); if (d.devLink) setLink(d.devLink); } catch (x: any) { setE(x.message); } };
+  const submit = async (ev: React.FormEvent) => { ev.preventDefault(); setBusy(true); setE(""); try { await post("verify-me", { p }); setOpen(false); r.refresh(); } catch (x: any) { setE(x.message); } setBusy(false); };
+  return (<>
+    <button type="button" onClick={() => setOpen(true)} className="mx-4 lg:mx-8 mt-3 w-[calc(100%-2rem)] lg:w-[calc(100%-4rem)] text-left rounded-xl bg-navy text-white px-4 py-3 text-sm flex items-center gap-2 hover:brightness-110 transition">
+      <Icon n="shield" className="w-4 h-4 text-teal-50 shrink-0" /><span className="flex-1 min-w-0">Verify <b>{email}</b> to unlock buying & withdrawals.</span><span className="chip bg-white/15 text-white shrink-0">Verify</span></button>
+    {open && <div className="fixed inset-0 z-[100] grid place-items-center p-4 bg-navy/40 backdrop-blur-sm" onClick={() => setOpen(false)}>
+      <form onSubmit={submit} onClick={(x) => x.stopPropagation()} className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-lift space-y-4 k-rise">
+        <div className="flex items-start gap-3"><span className="w-10 h-10 rounded-2xl wash-teal grid place-items-center shrink-0"><Icon n="shield" className="w-5 h-5" /></span><div className="flex-1 min-w-0"><h2 className="font-bold text-navy">Verify your email</h2><p className="text-xs text-silver truncate">Phrase sent to {email} · valid 30 min</p></div>
+          <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="w-8 h-8 rounded-full grid place-items-center text-silver hover:bg-paper">✕</button></div>
+        <input autoFocus className="input" placeholder="e.g. ewa-ojo" value={p} onChange={(x) => setP(x.target.value)} autoComplete="one-time-code" />
+        <Err e={e} />
+        <button className="btn-primary w-full" disabled={busy || !p.trim()}>{busy ? "Verifying…" : "Verify"}</button>
+        <div className="flex items-center justify-center gap-2 text-xs text-silver">Didn't get it?<button type="button" onClick={resend} className="text-teal font-semibold">{sent ? "Sent ✓" : "Resend email"}</button></div>
+        {link && <a href={link} className="block text-center text-xs text-teal underline">Dev: open verify link</a>}
+      </form></div>}</>);
 }
 export function useForm(action: string, onOk: (d: any) => void) {
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
@@ -83,7 +96,7 @@ export function Checkout({ id, kind, unit, seatsLeft, profitPerUnit, price, cfg,
   </div>);
 }
 export function WalletTopUp() {
-  const [amt, setAmt] = useState(""); return (<div className="flex gap-2"><input className="input" inputMode="numeric" placeholder="Amount (₦)" value={amt} onChange={(e) => setAmt(e.target.value.replace(/\D/g, ""))} /><PayRedirect action="wallet-topup" body={{ amount: Number(amt) }} label="Top up" className="btn-teal shrink-0" /></div>);
+  const [amt, setAmt] = useState(""); return (<div className="flex gap-2"><input className="input" inputMode="numeric" placeholder="Amount (₦)" value={amt} onChange={(e) => setAmt(e.target.value.replace(/\D/g, ""))} /><PayRedirect action="wallet-topup" body={{ amount: Number(amt) }} label="+ Top up" className="shrink-0 self-center h-8 px-3 rounded-full wash-teal text-[11px] font-semibold tracking-wide hover:brightness-95 transition" /></div>);
 }
 export function VaultCreate({ r3, r12 }: { r3: number; r12: number }) {
   const r = useRouter(); const [months, setMonths] = useState(12); const [title, setTitle] = useState(""); const [busy, setBusy] = useState(false); const [e, setE] = useState("");
@@ -141,7 +154,7 @@ export function KycForm() {
     <div className="grid grid-cols-2 gap-3"><label className="block"><span className="label">Date of birth</span><input name="dob" type="date" className="input mt-1.5" required /></label><label className="block"><span className="label">Phone</span><input name="phone" inputMode="tel" className="input mt-1.5" placeholder="0803…" required /></label></div>
     <div className="grid grid-cols-2 gap-3"><label className="block"><span className="label">NIN</span><input name="nin" inputMode="numeric" maxLength={11} pattern="\d{11}" className="input mt-1.5" placeholder="11 digits" required /></label>
     <label className="block"><span className="label">BVN</span><input name="bvn" inputMode="numeric" maxLength={11} pattern="\d{11}" className="input mt-1.5" placeholder="11 digits" required /></label></div>
-    <Err e={f.error} /><button className="btn-primary w-full" disabled={f.busy}>{f.busy ? "Checking…" : "Verify Identity"}</button><p className="flex justify-center"><Tip text="Encrypted at rest; only the last 4 digits are ever shown. Asked once — never again." /></p></form>);
+    <Err e={f.error} /><button className="btn-primary w-full" disabled={f.busy}>{f.busy ? "Checking…" : "Verify Identity"}</button></form>);
 }
 export function TopUp({ id }: { id: string }) {
   return (<div className="flex gap-2">{[50000, 250000, 1000000].map((a) => <PayRedirect key={a} action="topup" body={{ id, amount: a }} className="btn-ghost w-full px-2 text-xs" label={"+" + naira(a)} />)}</div>);

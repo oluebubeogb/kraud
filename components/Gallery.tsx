@@ -9,7 +9,7 @@ export default function Gallery({ id, imgs, alt, children }: { id: string; imgs:
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => { const el = e.currentTarget; setI(Math.round(el.scrollLeft / el.clientWidth)); };
   const bg = { backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" };
   return (<>
-    <div className="relative h-[52vh] lg:h-[60vh] lg:rounded-3xl overflow-hidden bg-gradient-to-br from-navy to-teal" style={bg}>
+    <div className="relative h-[52vh] lg:h-[60vh] lg:rounded-3xl overflow-hidden wash-soft" style={bg}>
       <div ref={strip} onScroll={onScroll} className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
         {imgs.map((src, k) => <button key={k} onClick={() => setLb(true)} className="w-full h-full shrink-0 snap-center" aria-label="Open photo"><img src={src} alt={alt} loading={k ? "lazy" : "eager"} className="w-full h-full object-cover" /></button>)}</div>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />

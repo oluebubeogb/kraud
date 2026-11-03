@@ -29,6 +29,6 @@ export function Cover({ id, src, alt, className = "" }: { id: string; src: strin
   const url = tries > 0 && src ? `${src}${src.includes("?") ? "&" : "?"}r=${tries}` : src;
   useEffect(() => { const i = ref.current; if (i && i.complete && i.naturalWidth === 0 && src) setTries(1); }, [src]);
   useEffect(() => { setHidden(false); setTries(0); }, [src]);
-  return (<div className={`relative overflow-hidden bg-gradient-to-br from-navy to-teal ${className}`} style={{ backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" }}>
+  return (<div className={`relative overflow-hidden wash-soft ${className}`} style={{ backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" }}>
     {src && !hidden && <img ref={ref} key={url} src={url} alt={alt} decoding="async" onError={() => (tries < 2 ? setTries(tries + 1) : setHidden(true))} className="absolute inset-0 w-full h-full object-cover" />}</div>);
 }

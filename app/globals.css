@@ -34,11 +34,13 @@ html,body{background:#F7F8FA;color:#0B1B33;-webkit-tap-highlight-color:transpare
 .wash-coral{background:rgba(252,132,156,.10);color:#C2475F}.wash-gold{background:rgba(252,192,108,.14);color:#9A6412}.wash-peach{background:rgba(252,168,132,.12);color:#B4542B}
 .wash-cyan{background:rgba(48,144,156,.10);color:#1F6B74}.wash-mint{background:rgba(36,156,132,.10);color:#1A7563}.wash-blue{background:rgba(72,120,180,.10);color:#2F5A8F}
 .wash-violet{background:rgba(96,108,204,.10);color:#4B55A8}.wash-violet2{background:rgba(120,96,228,.10);color:#5B45BF}.wash-pink{background:rgba(252,108,180,.10);color:#B83A7C}
+.wash-soft{background:linear-gradient(135deg,rgba(36,156,132,.10),rgba(72,120,180,.10));color:#002454}
 .wash-navy{background:rgba(0,36,84,.06);color:#002454}.wash-teal{background:rgba(31,122,114,.10);color:#1F7A72}
 .k-hero{background:radial-gradient(120% 140% at 0% 0%,rgba(31,122,114,.10),transparent 55%),radial-gradient(90% 120% at 100% 0%,rgba(96,108,204,.10),transparent 60%),linear-gradient(180deg,#fff,#F7F8FA)}
 .k-tile{@apply rounded-2xl p-4 ring-1 ring-black/[.03] transition duration-200 hover:-translate-y-0.5 hover:shadow-card}
 .k-bar{height:6px;border-radius:999px;background:rgba(0,36,84,.08);overflow:hidden}
 .k-bar>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#1F7A72,#30909C);transition:width .32s cubic-bezier(.2,.8,.2,1)}
+.k-rise:has(.k-tip-wrap:hover),.k-rise:has(.k-tip-wrap:focus-within),.k-rise:has(.k-tip-wrap[data-open="1"]),.card:has(.k-tip-wrap:hover),.card:has(.k-tip-wrap[data-open="1"]){position:relative;z-index:40}
 .k-tip-wrap:hover,.k-tip-wrap:focus-within,.k-tip-wrap[data-open="1"]{z-index:9999}
 .k-tip{position:absolute;z-index:9999;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;width:max-content;max-width:240px;white-space:normal;text-align:left}
 .k-tip-wrap:hover .k-tip,.k-tip-wrap:focus-within .k-tip,.k-tip-wrap[data-open="1"] .k-tip{opacity:1;transform:translate(-50%,0)}

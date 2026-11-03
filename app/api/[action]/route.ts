@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
         if (inviter) { await prisma.referral.create({ data: { referrerId: inviter.id, refereeId: u.id } }); await remind(inviter.id, "Your invite worked", `${u.name} joined with your code. You earn a reward when they co-own or buy.`); }
         const t = await issueToken(u.id, "verify");
         const link = `${appUrl()}/verify?u=${u.id}&p=${encodeURIComponent(t.phrase)}`;
-        await sendMail(email, "Verify your Kraud account", `Welcome to Kraud, ${u.name}.\n\nYour verification phrase: ${t.phrase}\nOr open: ${link}\n\nThis link is valid for 24 hours.`);
+        await sendMail(email, "Verify your Kraud account", `Welcome to Kraud, ${u.name}.\n\nYour verification phrase: ${t.phrase}\nOr open: ${link}\n\nValid for 30 minutes.`, undefined, { label: "Verify email", url: link });
         await setSession(u.id); await remind(u.id, "Verify your email", "Confirm your email to unlock buying, selling and withdrawals.");
         return j({ ok: true, ...dev({ devLink: link }) });
       }
@@ -57,7 +57,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
         await setSession(u.id); return j({ ok: true });
       }
       case "logout": await clearSession(); return j({ ok: true });
-      case "resend-verify": { const u = need(); if (limited("rv:" + u.id, 5, 3600e3)) return err("Please wait before resending", 429); const t = await issueToken(u.id, "verify"); const link = `${appUrl()}/verify?u=${u.id}&p=${encodeURIComponent(t.phrase)}`; await sendMail(u.email, "Verify your Kraud account", `Your verification phrase: ${t.phrase}\n${link}`); return j({ ok: true, ...dev({ devLink: link }) }); }
+      case "resend-verify": { const u = need(); if (limited("rv:" + u.id, 5, 3600e3)) return err("Please wait before resending", 429); const t = await issueToken(u.id, "verify"); const link = `${appUrl()}/verify?u=${u.id}&p=${encodeURIComponent(t.phrase)}`; await sendMail(u.email, "Verify your Kraud account", `Your verification phrase: ${t.phrase}\nOr open: ${link}\n\nValid for 30 minutes.`, undefined, { label: "Verify email", url: link }); return j({ ok: true, ...dev({ devLink: link }) }); }
+      case "verify-me": { const u = need(); if (u.verified) return j({ ok: true }); if (limited("vm:" + u.id, 10, 3600e3)) return err("Too many attempts", 429); const r = await useToken(u.id, "verify", str(b.p)); if (r !== "ok") return err(r === "expired" ? "Phrase expired — resend a new email" : r === "locked" ? "Too many tries — resend a new email" : "That phrase doesn't match"); await prisma.user.update({ where: { id: u.id }, data: { verified: true } }); return j({ ok: true }); }
       case "verify": { const r = await useToken(str(b.u), "verify", str(b.p)); if (r !== "ok") return err(r === "expired" ? "Link expired — resend from the app" : "Invalid verification phrase"); await prisma.user.update({ where: { id: str(b.u) }, data: { verified: true } }); return j({ ok: true }); }
       case "forgot": {
         if (limited("forgot:" + ip, 10, 3600e3)) return err("Too many requests", 429);

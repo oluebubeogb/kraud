@@ -4,6 +4,7 @@ import type { User } from "@prisma/client";
 import { prisma } from "./db";
 import { hmac, safeEq, sha } from "./secure";
 import { randomPhrase } from "./words";
+export const TTL_VERIFY = 30 * 60 * 1000;
 export const TTL_2FA = 15 * 60 * 1000;
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
 export const hashPw = (pw: string, salt = crypto.randomBytes(16).toString("hex")) => ({ salt, hash: crypto.scryptSync(norm(pw), salt, 64).toString("hex") });
@@ -28,7 +29,7 @@ export const isAdmin = (u: Pick<User, "username" | "email"> | null) => !!u && (a
 export const kycOk = (u: Me) => u.kyc?.status === "VERIFIED";
 export function findLogin(id: string) { const k = id.trim().toLowerCase(); return prisma.user.findFirst({ where: { OR: [{ username: k }, { email: k }] } }); }
 export async function issueToken(userId: string, kind: "verify" | "reset" | "2fa", words = 2) {
-  const phrase = randomPhrase(words); const exp = new Date(Date.now() + (kind === "verify" ? 24 * 3600e3 : TTL_2FA));
+  const phrase = randomPhrase(words); const exp = new Date(Date.now() + (kind === "verify" ? TTL_VERIFY : TTL_2FA));
   await prisma.token.deleteMany({ where: { userId, kind } });
   await prisma.token.create({ data: { userId, kind, phraseHash: sha(phrase), expiresAt: exp } });
   return { phrase, exp: exp.getTime() };
