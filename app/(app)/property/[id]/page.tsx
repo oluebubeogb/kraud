@@ -18,7 +18,7 @@ export default async function Prop({ params }: { params: Promise<{ id: string }>
   const { id } = await params; const u = await currentUser(); const uid = u?.id ?? ""; const l = await getListing(id); if (!l || (l.moderation !== "Approved" && (!uid || l.sellerId !== uid))) notFound();
   const mine = !!uid && l.sellerId === uid; const d = l.deal; const open = l.raiseStatus === "OPEN"; const canInv = open && d.canInvest && d.seatsLeft > 0; const canBuy = open && d.canBuy && l.seatsTaken === 0; const primary = canInv ? { href: `/checkout/${l.id}?mode=invest`, t: "Invest" } : canBuy ? { href: `/checkout/${l.id}?mode=buy`, t: "Buy" } : null; const similar = (await listings({ city: l.city, NOT: { id: l.id } })).slice(0, 3);
   return (<div className="lg:px-8 lg:pt-6">
-    <div className="relative"><Gallery id={l.id} imgs={photos(l).length ? photos(l) : [l.img]} alt={l.title}>
+    <div className="relative"><Gallery id={l.id} imgs={photos(l).length ? photos(l) : [l.img]} alt={l.title} video={l.videos[0]}>
       <Link href="/explore" className="absolute top-[max(env(safe-area-inset-top),14px)] left-4 w-10 h-10 grid place-items-center rounded-full bg-white/90 text-navy"><Icon n="back" /></Link>
       <div className="pointer-events-none absolute bottom-0 inset-x-0 p-5 text-white"><h1 className="text-xl lg:text-3xl font-extrabold">{l.title}</h1><p className="text-white/80 text-sm flex items-center gap-1 mb-4"><Icon n="pin" className="w-4 h-4" />{l.estate}, {l.city}, {l.state}</p></div></Gallery></div>
     <div className="px-4 lg:px-0 mt-2 relative z-10 lg:mt-6 grid lg:grid-cols-3 gap-4">

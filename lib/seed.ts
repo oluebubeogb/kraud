@@ -28,14 +28,25 @@ async function localize(id: string, urls: string[]): Promise<string[]> {
   }
   return out;
 }
+// Free username/email/referralCode held by a leftover seed row with a different id (older seed versions), so upsert can't hit P2002.
+async function freeSeedSlot(id: string, username: string, email: string, referralCode: string) {
+  const clash = await prisma.user.findMany({ where: { id: { not: id }, OR: [{ username }, { email }, { referralCode }] }, select: { id: true, seed: true, username: true } });
+  for (const u of clash) {
+    if (!u.seed) throw new Error(`Seed account "${username}" clashes with real user "${u.username}" — rename that user first.`);
+    await prisma.listing.deleteMany({ where: { sellerId: u.id } });
+    await prisma.user.delete({ where: { id: u.id } });
+  }
+}
 export async function seedAdd() {
   fs.mkdirSync(SEED_DIR, { recursive: true });
   // Every seed account (vendors + buyer) signs in with the same password so the client can switch accounts easily.
   const pw = hashPw(SEED_PASSWORD); let added = 0, files = 0;
   for (const [k, s] of Object.entries(SEED_SELLERS)) {
     const name = SEED_LISTINGS.find((l) => l.seller === k)!.sellerName;
+    await freeSeedSlot("seed_" + k, s.username, s.email, "SEED" + k.toUpperCase());
     await prisma.user.upsert({ where: { id: "seed_" + k }, update: { profileImageUrl: s.avatar, username: s.username, email: s.email, name, businessName: name, ...pw }, create: { id: "seed_" + k, username: s.username, email: s.email, name, businessName: name, role: "SELLER", verified: true, seed: true, profileImageUrl: s.avatar, referralCode: "SEED" + k.toUpperCase(), ...pw, kyc: { create: kyc("1000000" + k.padStart(4, "0")) } } });
   }
+  await freeSeedSlot("seed_ada", "ada", "ada@demo.kraud.ng", "ADA2026");
   await prisma.user.upsert({ where: { id: "seed_ada" }, update: { profileImageUrl: "/seed/avatars/ada.jpg", ...pw }, create: { id: "seed_ada", username: "ada", email: "ada@demo.kraud.ng", name: "Ada Okafor", verified: true, seed: true, profileImageUrl: "/seed/avatars/ada.jpg", referralCode: "ADA2026", walletBalance: 2_500_000n, ...pw, kyc: { create: kyc("12345674321") } } });
   for (const l of SEED_LISTINGS) {
     const cov = path.join(SEED_DIR, `${l.id}-cover.svg`), meta = path.join(SEED_DIR, `${l.id}.json`);

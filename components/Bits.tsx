@@ -15,7 +15,7 @@ export function ListingCard({ l, compact, i = 0, feat }: { l: Listing; compact?:
   const coown = l.deal.mode !== "BUY" && l.deal.seats > 0;
   return (
     <div className="group card k-card k-rise overflow-hidden" style={{ ["--i" as any]: i % 12 }}>
-      <Link href={`/property/${l.id}`} className="block relative k-img"><Cover id={l.id} src={l.img} alt={l.title} className={compact ? "h-32" : "h-[calc(11rem+1.25vh)] sm:h-44"} />
+      <Link href={`/property/${l.id}`} className="block relative k-img"><Cover id={l.id} src={l.img} alt={l.title} video={l.videos?.[0]} className={compact ? "h-32" : "h-[calc(11rem+1.25vh)] sm:h-44"} />
         {photos(l).length > 1 && <span className="absolute top-2 right-2 z-10 chip bg-black/45 text-white text-[10px] backdrop-blur">1/{photos(l).length}</span>}</Link>
       <div className="p-3">
         <Link href={`/property/${l.id}`} className="block text-[15px] font-semibold text-navy truncate">{l.title}</Link>

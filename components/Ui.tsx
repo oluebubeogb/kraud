@@ -35,7 +35,12 @@ export function SafeImg({ src, alt = "", className = "", fit = "object-cover", o
   if (!src || cur.dead) return null;
   return <img ref={ref} key={url} src={url} alt={cur.ok ? alt : ""} decoding="async" referrerPolicy={ext ? "no-referrer" : undefined} onLoad={(e) => { setSt((x) => (x.s === src ? { ...x, ok: true } : x)); onLoad?.(e); }} onError={fail} className={`${fit} transition-opacity duration-300 ${cur.ok ? "opacity-100" : "opacity-0"} ${className}`} {...rest} />;
 }
-export function Cover({ id, src, alt, className = "" }: { id: string; src: string; alt: string; className?: string }) {
+export function Cover({ id, src, alt, className = "", video }: { id: string; src: string; alt: string; className?: string; video?: string }) {
+  const v = useRef<HTMLVideoElement>(null); const [bad, setBad] = useState(false); const [on, setOn] = useState(false);
+  useEffect(() => { const el = v.current; if (!el || !video) return; const io = new IntersectionObserver(([e]) => setOn(e.isIntersecting && e.intersectionRatio > 0.7), { threshold: [0, 0.7] }); io.observe(el); return () => io.disconnect(); }, [video]);
+  useEffect(() => { const el = v.current; if (!el) return; if (on) el.play().catch(() => {}); else el.pause(); }, [on]);
   return (<div className={`relative overflow-hidden wash-soft ${className}`} style={{ backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" }}>
-    <SafeImg src={src} alt={alt} className="absolute inset-0 w-full h-full" /></div>);
+    <SafeImg src={src} alt={alt} className="absolute inset-0 w-full h-full" />
+    {video && !bad && <video ref={v} src={video} poster={src} muted loop playsInline preload="metadata" onError={() => setBad(true)} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${on ? "opacity-100" : "opacity-0"}`} />}
+    {video && !bad && <span className="absolute left-2 bottom-2 z-[1] rounded-full bg-[#002454]/70 text-white text-[10px] font-semibold px-2 py-0.5 backdrop-blur">▶ Video</span>}</div>);
 }
