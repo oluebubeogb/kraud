@@ -191,7 +191,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
         const minProfitMargin = Math.max(0, Math.min(500, Number(b.minProfitMargin) || 0));
         const estimatedProfit = money(b.estimatedProfit) || BigInt(Math.round(Number(totalNeeded) * minProfitMargin / 100));
         const opt = (v: unknown) => (v === "" || v == null ? null : money(v));
-        const data = { title: str(b.title, 100), city: str(b.city, 40), estate: str(b.estate, 100), state: str(b.state, 40), price: BigInt(price), beds: n(b.beds), baths: n(b.baths), sqm: Math.max(0, Math.round(Number(b.sqm) || 0)), status: STATUSES.includes(b.status) ? b.status : "Completed", type: str(b.type, 40) || "House", desc: str(b.desc, 2000), img: str(b.img, 300),
+        const kind = ["PROPERTY", "AUTO", "OTHER"].includes(String(b.kind)) ? String(b.kind) : "PROPERTY";
+        const attrs: Record<string, string | number> = {};
+        for (const [k, v] of Object.entries(b)) if (k.startsWith("attr_") && String(v ?? "").trim()) { const key = k.slice(5).replace(/[^a-z0-9_]/gi, "").slice(0, 30); const val = str(v, 80); attrs[key] = /^\d+$/.test(val) ? Number(val) : val; }
+        for (const line of String(b.attrsText || "").split("\n").slice(0, 12)) { const m = line.match(/^\s*([^:]{1,30}):\s*(.{1,80})$/); if (m) attrs[m[1].trim()] = m[2].trim(); }
+        const videos = String(b.videosText || "").split(/\s+/).map((x) => x.trim()).filter((x) => /^(https:\/\/|\/media\/listings\/)/.test(x) && x.length < 400).slice(0, 4);
+        const data = { title: str(b.title, 100), city: str(b.city, 40), estate: str(b.estate, 100), state: str(b.state, 40), price: BigInt(price), beds: kind === "PROPERTY" ? n(b.beds) : 0, baths: kind === "PROPERTY" ? n(b.baths) : 0, sqm: kind !== "PROPERTY" ? 0 : Math.max(0, Math.round(Number(b.sqm) || 0)), status: STATUSES.includes(b.status) ? b.status : "Completed", type: str(b.type, 40) || (kind === "AUTO" ? "Vehicle" : kind === "OTHER" ? "Asset" : "House"), kind, attrs, videos, desc: str(b.desc, 2000), img: str(b.img, 300),
           commerceMode: mode, horizon, completionCost, maintenanceCost, totalNeeded, seatsNeeded, unitPrice, minProfitMargin, estimatedProfit, insuranceFee: opt(b.insuranceFee), diligenceFee: opt(b.diligenceFee) };
         if (!data.title || !data.city || !data.estate || !data.state || !(price >= 100000)) return err("Fill title, city, estate, state and a price (≥ ₦100,000)");
         if (mode !== "BUY" && seatsNeeded < 2) return err("Co-own listings need at least 2 units");

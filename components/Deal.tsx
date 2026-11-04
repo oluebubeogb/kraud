@@ -30,5 +30,5 @@ export function FeeLine({ insurance, diligence, insurer }: { insurance: number; 
 export const RiskLine = () => <p className="text-[11px] text-silver flex items-center gap-1.5"><Icon n="info" className="w-3.5 h-3.5 shrink-0" />Property values can fall; profits are estimates, not guarantees.</p>;
 export function Avatar({ src, name, size = 36, className = "" }: { src?: string | null; name: string; size?: number; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src || "/avatars/default.webp"} alt={name} width={size} height={size} className={`rounded-full object-cover ring-2 ring-white shrink-0 ${className}`} style={{ width: size, height: size }} decoding="async" />;
+  return <img src={src || "/avatars/default.webp"} alt={name} width={size} height={size} className={`rounded-full object-cover ring-2 ring-white shrink-0 ${className}`} style={{ width: size, height: size }} decoding="async" onError={(e) => { const i = e.currentTarget; if (!i.src.endsWith("/avatars/default.webp")) i.src = "/avatars/default.webp"; }} />;
 }

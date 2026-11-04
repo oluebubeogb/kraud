@@ -1,3 +1,4 @@
+import { searchText } from "@/lib/specs";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import MobileImmersive from "@/components/MobileImmersive";
@@ -15,7 +16,7 @@ import { STATUS_LABEL } from "@/lib/listings";
 export default async function Explore({ searchParams }: { searchParams: Promise<{ city?: string; q?: string; status?: string; hz?: string; mode?: string }> }) {
   const s = await searchParams; const city = s.city || "All"; const q = (s.q || "").toLowerCase(); const u = await currentUser();
   const [all, unread, cityList, fsAll, rec, sideAll, foot] = await Promise.all([listings(), u ? prisma.reminder.count({ where: { userId: u.id, read: false } }) : Promise.resolve(0), cities(), featured("search"), featured("recommended"), featured("sidebar"), featured("footer")]);
-  const res = all.filter((l) => (city === "All" || l.city === city) && (!s.status || l.status === s.status) && (!s.hz || (s.hz === "short" ? l.horizon === "SHORT_6M" : l.horizon === "LONG_12_18M")) && (!s.mode || (s.mode === "invest" ? l.deal.mode !== "BUY" : s.mode === "buy" ? l.deal.mode !== "INVEST" : l.deal.mode === "BOTH")) && (!q || q.trim().split(/\s+/).every((w) => `${l.title} ${l.estate} ${l.city} ${l.state} ${l.type} ${l.beds} beds ${l.baths} baths ${l.sqm} m2`.toLowerCase().includes(w))));
+  const res = all.filter((l) => (city === "All" || l.city === city) && (!s.status || l.status === s.status) && (!s.hz || (s.hz === "short" ? l.horizon === "SHORT_6M" : l.horizon === "LONG_12_18M")) && (!s.mode || (s.mode === "invest" ? l.deal.mode !== "BUY" : s.mode === "buy" ? l.deal.mode !== "INVEST" : l.deal.mode === "BOTH")) && (!q || q.trim().split(/\s+/).every((w) => `${l.title} ${l.estate} ${l.city} ${l.state} ${l.type} ${l.beds} beds ${l.baths} baths ${l.sqm} m2 ${searchText(l)}`.toLowerCase().includes(w))));
   const fs = !q ? undefined : fsAll.filter((l) => city === "All" || l.city === city)[0]; const side = sideAll.filter((l) => city === "All" || l.city === city)[0] ?? sideAll[0];
   const tc = city === "All" ? "Lagos" : city;
   await Promise.all([fs && track("search", fs.city), side && track("sidebar", side.city), !q && rec.length && track("recommended", tc), foot.length && track("footer", tc)]);

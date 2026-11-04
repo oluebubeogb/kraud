@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ViewToggle from "@/components/ViewToggle";
 import Icon from "@/components/Icon";
-import { post } from "@/components/Ui";
+import { post, SafeImg } from "@/components/Ui";
 import { naira, nairaShort } from "@/lib/format";
 import SeeMore from "@/components/SeeMore";
 import SearchBar from "@/components/SearchBar";
 import type { Deal } from "@/lib/deal";
 import { STATUS_LABEL } from "@/lib/listings";
-export type FeedItem = { id: string; title: string; price: number; city: string; state: string; estate: string; desc: string; beds: number; baths: number; sqm: number; status: string; type: string; seller: string; sellerId: string; imgs: string[]; featured: boolean; deal: Deal; sellerImg: string | null };
+export type FeedItem = { id: string; title: string; price: number; city: string; state: string; estate: string; desc: string; beds: number; baths: number; sqm: number; kind: string; attrs: unknown; videos: string[]; status: string; type: string; seller: string; sellerId: string; imgs: string[]; featured: boolean; deal: Deal; sellerImg: string | null };
 
 function Act({ icon, label, on, onClick, href }: { icon: string; label: string; on?: boolean; onClick?: () => void; href?: string }) {
   const inner = <><span className={`w-12 h-12 rounded-full grid place-items-center backdrop-blur-md ring-1 transition duration-200 active:scale-90 ${on ? "bg-[#1F7A72] ring-[#1F7A72] text-white" : "bg-[#002454]/45 ring-white/15 text-white"}`}><Icon n={icon} className="w-6 h-6" /></span><span className="text-[11px] font-semibold text-white/90 drop-shadow">{label}</span></>;
@@ -29,8 +29,8 @@ function Slide({ it, authed, me, saved, onSave }: { it: FeedItem; authed: boolea
     <div className={`absolute inset-0 scale-110 blur-2xl transition-opacity duration-500 ${portrait ? "opacity-0 md:opacity-60" : "opacity-60"}`} style={{ backgroundImage: `url(${it.imgs[i]})`, backgroundSize: "cover", backgroundPosition: "center" }} />
     <div ref={strip} onScroll={(e) => { const el = e.currentTarget; setI(Math.round(el.scrollLeft / el.clientWidth)); }} className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
       {it.imgs.map((src, k) => { const p = orient[k] === "p"; return <div key={k} className="relative w-full h-full shrink-0 snap-center flex items-center justify-center">
-        <img src={src} alt={it.title} loading={k ? "lazy" : "eager"} draggable={false} onLoad={(e) => { const im = e.currentTarget; setOrient((o) => ({ ...o, [k]: im.naturalHeight > im.naturalWidth * 1.05 ? "p" : "l" })); }}
-          className={p ? "absolute inset-0 w-full h-full object-cover md:static md:h-full md:w-auto md:max-w-full md:aspect-[9/16] md:shadow-2xl animate-[kfade_.5s_ease]" : "w-full md:w-auto max-h-[62%] md:max-h-[78%] md:max-w-[min(1100px,86%)] object-contain md:rounded-3xl shadow-2xl ring-1 ring-white/10 animate-[kfade_.5s_ease]"} />
+        <SafeImg src={src} alt={it.title} loading={k ? "lazy" : "eager"} draggable={false} fit={p ? "object-cover" : "object-contain"} onLoad={(e) => { const im = e.currentTarget; setOrient((o) => ({ ...o, [k]: im.naturalHeight > im.naturalWidth * 1.05 ? "p" : "l" })); }}
+          className={p ? "absolute inset-0 w-full h-full md:static md:h-full md:w-auto md:max-w-full md:aspect-[9/16] md:shadow-2xl animate-[kfade_.5s_ease]" : "w-full md:w-auto max-h-[62%] md:max-h-[78%] md:max-w-[min(1100px,86%)] md:rounded-3xl shadow-2xl ring-1 ring-white/10 animate-[kfade_.5s_ease]"} />
       </div>; })}
     </div>
     <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#002454]/55 via-transparent via-40% to-[#001a3d]/95" />

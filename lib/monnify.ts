@@ -1,10 +1,17 @@
 import crypto from "crypto";
 import { appUrl, isProd } from "./db";
 /** Monnify gateway. MONNIFY_ENV=sandbox|live. If keys are missing outside production, the built-in sandbox simulator is used. */
-export const monnifyBase = () => process.env.MONNIFY_BASE_URL || (process.env.MONNIFY_ENV === "live" ? "https://api.monnify.com" : "https://sandbox.monnify.com");
-export const monnifyOn = () => !!(process.env.MONNIFY_API_KEY && process.env.MONNIFY_SECRET_KEY && process.env.MONNIFY_CONTRACT_CODE);
+/** PAYMENT_PROVIDER=monnify (default) | bannk. Bannk Dev Mode speaks the Monnify API, so both use the same MONNIFY_* vars;
+ *  with bannk, MONNIFY_BASE_URL must point at the Bannk public URL and the keys come from Bannk Dev Mode → API keys. */
+export const paymentProvider = () => ((process.env.PAYMENT_PROVIDER || "monnify").toLowerCase() === "bannk" ? "bannk" : "monnify");
+export const monnifyBase = () => {
+  const b = (process.env.MONNIFY_BASE_URL || "").replace(/\/+$/, "");
+  if (paymentProvider() === "bannk") { if (!b) throw new Error("PAYMENT_PROVIDER=bannk requires MONNIFY_BASE_URL (your Bannk public URL)"); return b; }
+  return b || (process.env.MONNIFY_ENV === "live" ? "https://api.monnify.com" : "https://sandbox.monnify.com");
+};
+export const monnifyOn = () => !!(process.env.MONNIFY_API_KEY && process.env.MONNIFY_SECRET_KEY && process.env.MONNIFY_CONTRACT_CODE && (paymentProvider() !== "bannk" || process.env.MONNIFY_BASE_URL));
 export const simulatorOn = () => !monnifyOn() && !isProd();
-export const monnifyMode = () => (monnifyOn() ? (process.env.MONNIFY_ENV === "live" ? "live" : "sandbox") : simulatorOn() ? "simulator" : "unconfigured");
+export const monnifyMode = () => (monnifyOn() ? (paymentProvider() === "bannk" ? "bannk" : process.env.MONNIFY_ENV === "live" ? "live" : "sandbox") : simulatorOn() ? "simulator" : "unconfigured");
 let tok: { v: string; exp: number } | null = null;
 async function token() {
   if (tok && tok.exp > Date.now()) return tok.v;

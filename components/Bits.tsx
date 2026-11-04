@@ -1,6 +1,7 @@
 import { FeaturedTag } from "./ViewToggle";
 import { photos } from "@/lib/photos";
 import Link from "next/link";
+import { specTag } from "@/lib/specs";
 import Icon from "./Icon";
 import { Cover } from "./Ui";
 import { nairaShort } from "@/lib/format";
@@ -19,7 +20,7 @@ export function ListingCard({ l, compact, i = 0, feat }: { l: Listing; compact?:
       <div className="p-3">
         <Link href={`/property/${l.id}`} className="block text-[15px] font-semibold text-navy truncate">{l.title}</Link>
         <div className="text-[14px] font-semibold text-teal">{coown ? <>{nairaShort(l.deal.unit)}<span className="font-medium text-silver"> / unit · whole {nairaShort(l.price)}</span></> : <>{nairaShort(l.price)}{l.raiseStatus === "SOLD" && <span className="ml-2 chip wash-coral">Sold</span>}</>}</div>
-        <div className="flex items-center gap-1 text-[13px] text-silver mt-0.5 min-w-0"><Icon n="pin" className="w-3.5 h-3.5 shrink-0" /><span className="truncate">{l.estate}, {l.city}</span><span className="ml-auto shrink-0 pl-2"><SeeMore m={{ id: l.id, title: l.title, seller: l.sellerName, sellerId: l.sellerId, sellerImg: l.sellerImg, deal: l.deal, featured: feat, tags: [l.type, STATUS_LABEL[l.status] || l.status, `${l.beds}bd ${l.baths}ba ${l.sqm}m²`] }} /></span></div>
+        <div className="flex items-center gap-1 text-[13px] text-silver mt-0.5 min-w-0"><Icon n="pin" className="w-3.5 h-3.5 shrink-0" /><span className="truncate">{l.estate}, {l.city}</span><span className="ml-auto shrink-0 pl-2"><SeeMore m={{ id: l.id, title: l.title, seller: l.sellerName, sellerId: l.sellerId, sellerImg: l.sellerImg, deal: l.deal, featured: feat, tags: [l.type, STATUS_LABEL[l.status] || l.status, specTag(l)] }} /></span></div>
       </div>
     </div>
   );

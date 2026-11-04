@@ -140,6 +140,9 @@ model Listing {
   beds            Int
   baths           Int
   sqm             Int
+  kind            String           @default("PROPERTY")
+  attrs           Json             @default("{}")
+  videos          String[]         @default([])
   status          String
   type            String
   img             String
@@ -173,6 +176,7 @@ model Listing {
   placements      Placement[]
 
   @@index([city])
+  @@index([kind])
 }
 
 model Payment {

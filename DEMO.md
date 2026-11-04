@@ -4,7 +4,7 @@ The demo runs on the real build: Postgres, real Monnify checkout (sandbox keys),
 
 ## 0. Prep (admin)
 1. Sign up as `admin` (it's in `KRAUD_ADMINS`). Verify via the email link.
-2. **Admin → Sample seed data → Add seed data.** One click creates 11 nationwide listings (Lagos, Abuja, Port Harcourt, Enugu, **Umuahia**…), 4 KYC-verified sample sellers (password `suya abuja`, e.g. `adebayohomes`, `umuahiaestates`) and sample buyer `ada` / `jollof lekki`. Files go to `/data/uploads/seed`. **Remove seed data** deletes rows, sample users and files.
+2. **Admin → Sample seed data → Add seed data.** One click creates the **Abuja pilot** catalogue: 19 listings, all in Abuja (FCT). There are 9 real-estate listings (Maitama, Asokoro, Wuse 2, Gwarinpa, Guzape, Life Camp, Jabi, Katampe and Kubwa), 6 automobiles (Camry, Lexus RX, Hilux, GLE, Sienna and Coaster) and 4 heavy-duty machines (CAT excavator, HOWO tipper, Komatsu loader and CAT generator). Every listing has its own photos (no photo is reused) plus a video. The seed also creates 6 KYC-verified sellers with profile photos (`maitamaprime`, `capitalcrest`, `gwarinpaestates`, `jabimotors`, `wuseautohub` and `kubwaheavy`) and the buyer `ada`. **Every seed account's password is `Password`.** Re-running the seed resets those passwords and removes old seed listings.
 
 ## 1. Buyer flow
 1. Sign up (Buy / invest), set a normal password (8+ chars, with a number or symbol), eye toggle shows it; a Nigerian-word verification phrase is emailed. Log in with username **or** email.
@@ -28,3 +28,8 @@ The demo runs on the real build: Postgres, real Monnify checkout (sandbox keys),
 
 ## 4. Mobile
 Install the PWA (Add to Home Screen) or ship the Capacitor apps in `native/`.
+
+## Automobile & machinery marketplace
+- Seller → New listing → **What are you listing?** offers Real estate, Auto & machinery, or Other asset. Autos ask for make, model, year, mileage or engine hours, fuel, transmission, seats and condition. "Other" accepts free `key: value` lines. Any listing can add video links.
+- Autos use the same Kraud model as property: co-own units, buy whole, save toward, chat with the seller, invest/buy modes, the immersive feed and the seller dashboard.
+- On the detail page, **Buy whole** (cart), **Save toward** (bank notes) and **Chat** become round icon buttons. They sit on a blue-green action strip and show a label on hover or tap. The specs strip (beds/baths/m², or year/km/seats) has a light tint.

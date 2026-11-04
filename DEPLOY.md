@@ -48,3 +48,21 @@ See `native/README.md` (Capacitor Android + iOS shells pointed at `APP_URL`).
 - Existing users get a referral code lazily on first Profile view; seed data (Admin → Add seed data) includes co-own samples.
 - Fees, insurer name, referral reward and vault rates are edited in **Admin → Fees, rates & rewards** (stored in the `Setting` table; no env vars needed).
 - Wallet payments settle instantly; Monnify payments still confirm via the existing webhook `/api/monnify/webhook`.
+
+### Nov 2026 update
+- New migration `20261104000000_listing_kind` adds `Listing.kind` (`PROPERTY`|`AUTO`|`OTHER`, default PROPERTY), `attrs` JSONB and `videos` TEXT[]. It is applied automatically at container start, and existing listings stay PROPERTY.
+- Seed media ships in `public/seed/` (photos, `avatars/`, `video/`), so nothing is hotlinked. The Dockerfile already copies `public/`. This adds about 8 MB of photos plus the videos to the image.
+- Seed accounts all use the password `Password`. After a demo on a public instance, change those passwords or remove the seed data.
+
+### Payments: Bannk (Monnify-compatible) or Monnify direct
+Kraud speaks the Monnify API. Bannk Dev Mode exposes that same API, so switching providers changes only env values, not code:
+```
+PAYMENT_PROVIDER=bannk
+MONNIFY_BASE_URL=https://<bannk-public-url>      # required for bannk
+MONNIFY_API_KEY=<Bannk Dev Mode API key>
+MONNIFY_SECRET_KEY=<Bannk Dev Mode secret key>   # also verifies webhook HMAC-SHA512
+MONNIFY_CONTRACT_CODE=<Bannk Dev Mode contract code>
+```
+In Bannk Dev Mode, set the webhook to `${APP_URL}/api/webhooks/monnify`.
+To go direct to Monnify, set `PAYMENT_PROVIDER=monnify`, set `MONNIFY_ENV=sandbox|live` and use your Monnify keys. MONNIFY_BASE_URL is optional in that case.
+If `PAYMENT_PROVIDER=bannk` is set without `MONNIFY_BASE_URL`, payments report "unconfigured" instead of falling back to Monnify.

@@ -23,12 +23,19 @@ export function ActionButton({ action, body, children, className = "btn-primary"
   const r = useRouter(); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
   return (<span className="inline-flex flex-col"><button disabled={busy} className={className} onClick={async () => { if (c && !window.confirm(c)) return; setBusy(true); setMsg(""); try { const d = await post(action, body ?? {}); if (then) r.push(then.replace(":id", d.id ?? "").replace(":ref", d.ref ?? "")); else { if (d.added !== undefined) setMsg(`Added ${d.added} listings · ${d.files} files on volume`); if (d.removedListings !== undefined) setMsg(`Removed ${d.removedListings} listings · ${d.removedFiles} files deleted`); r.refresh(); } } catch (e: any) { setMsg(e.message); } setBusy(false); }}>{busy ? "Please wait…" : children}</button>{msg && <span className="text-xs mt-1 text-teal">{msg}</span>}</span>);
 }
+export function SafeImg({ src, alt = "", className = "", fit = "object-cover", onLoad, onError, ...rest }: { src?: string; alt?: string; className?: string; fit?: string } & Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "className">) {
+  // Hidden until loaded; one retry (cache-buster + no-referrer); then removed. Never shows the browser broken-icon.
+  const ref = useRef<HTMLImageElement>(null); const [st, setSt] = useState<{ s?: string; t: number; ok: boolean; dead: boolean }>({ s: src, t: 0, ok: false, dead: false });
+  const cur = st.s === src ? st : { s: src, t: 0, ok: false, dead: false };
+  if (cur !== st) setSt(cur);
+  const ext = !!src && /^https?:/.test(src);
+  const url = cur.t > 0 && src ? `${src}${src.includes("?") ? "&" : "?"}r=1` : src;
+  const fail = (e?: React.SyntheticEvent<HTMLImageElement>) => { setSt((x) => (x.s !== src ? x : x.t < 1 ? { ...x, t: 1 } : { ...x, dead: true })); onError?.(e as any); };
+  useEffect(() => { const i = ref.current; if (!i || !i.complete) return; if (i.naturalWidth > 0) setSt((x) => (x.s === src ? { ...x, ok: true } : x)); else fail(); }, [url]); // eslint-disable-line
+  if (!src || cur.dead) return null;
+  return <img ref={ref} key={url} src={url} alt={cur.ok ? alt : ""} decoding="async" referrerPolicy={ext ? "no-referrer" : undefined} onLoad={(e) => { setSt((x) => (x.s === src ? { ...x, ok: true } : x)); onLoad?.(e); }} onError={fail} className={`${fit} transition-opacity duration-300 ${cur.ok ? "opacity-100" : "opacity-0"} ${className}`} {...rest} />;
+}
 export function Cover({ id, src, alt, className = "" }: { id: string; src: string; alt: string; className?: string }) {
-  // Image is always rendered (no state that can lock to placeholder before hydration); on error retry once with cache-buster, then hide.
-  const ref = useRef<HTMLImageElement>(null); const [tries, setTries] = useState(0); const [hidden, setHidden] = useState(false);
-  const url = tries > 0 && src ? `${src}${src.includes("?") ? "&" : "?"}r=${tries}` : src;
-  useEffect(() => { const i = ref.current; if (i && i.complete && i.naturalWidth === 0 && src) setTries(1); }, [src]);
-  useEffect(() => { setHidden(false); setTries(0); }, [src]);
   return (<div className={`relative overflow-hidden wash-soft ${className}`} style={{ backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" }}>
-    {src && !hidden && <img ref={ref} key={url} src={url} alt={alt} decoding="async" onError={() => (tries < 2 ? setTries(tries + 1) : setHidden(true))} className="absolute inset-0 w-full h-full object-cover" />}</div>);
+    <SafeImg src={src} alt={alt} className="absolute inset-0 w-full h-full" /></div>);
 }

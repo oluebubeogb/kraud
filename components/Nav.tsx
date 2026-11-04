@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Icon from "./Icon";
-const TABS = [["/explore", "Home", "home"], ["/investments", "Portfolio", "chart"], ["/savings", "Savings", "piggy"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
+const TABS = [["/explore", "Home", "home"], ["/investments", "Portfolio", "chart"], ["/savings", "Savings", "notes"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
 const SELLER_TABS = [["/explore", "Home", "home"], ["/seller", "Seller", "grid"], ["/investments", "Portfolio", "chart"], ["/chat", "Chat", "chat"], ["/profile", "Profile", "user"]] as const;
 export function BottomNav({ seller }: { seller?: boolean }) {
   const p = usePathname(); const tabs = (seller ? SELLER_TABS : TABS).map((t) => t[0] === "/explore" ? (["/immersive", "Discover", "expand"] as const) : t);

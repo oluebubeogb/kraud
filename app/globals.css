@@ -54,3 +54,12 @@ h1,h2,h3,b,strong{letter-spacing:-.018em}
 @keyframes k-hint{0%{opacity:0;transform:translateY(6px)}12%,88%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
 .k-hint{animation:k-hint 2.4s cubic-bezier(.2,.8,.2,1) both}
 @media (prefers-reduced-motion:reduce){.k-hint{animation:none}}
+/* Listing action strip — stands out from white UI (user testing: actions were hard to find). */
+.k-actbar{background:linear-gradient(135deg,#E2EEFF 0%,#DCF4EC 100%);border:1px solid #B9D8F5}
+.k-actbtn{position:relative;display:inline-grid;place-items:center;width:3rem;height:3rem;border-radius:9999px;background:#1F7A72;color:#fff;box-shadow:0 4px 14px -4px rgba(31,122,114,.55);transition:transform .15s,background .15s}
+.k-actbtn:hover,.k-actbtn:focus-visible{background:#17635C;transform:translateY(-1px)}
+.k-actbtn.k-blue{background:#2F6FD6;box-shadow:0 4px 14px -4px rgba(47,111,214,.55)}.k-actbtn.k-blue:hover{background:#2459B0}
+.k-act{position:relative;display:inline-flex}
+.k-act-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);opacity:0;pointer-events:none;white-space:nowrap;background:#002454;color:#fff;font-size:11.5px;font-weight:600;padding:.35rem .6rem;border-radius:.6rem;transition:opacity .18s,transform .18s;z-index:60}
+.k-act:hover .k-act-tip,.k-act:focus-within .k-act-tip,.k-act:active .k-act-tip{opacity:1;transform:translate(-50%,0)}
+.k-specs{background:linear-gradient(135deg,#EEF5FF,#EAF7F2)}

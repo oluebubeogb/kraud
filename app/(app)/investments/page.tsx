@@ -19,7 +19,7 @@ export default async function I() {
   const live = units.filter((x) => x.status === "ACTIVE" || x.status === "SELL_REQUESTED");
   const invested = live.reduce((a, x) => a + Number(x.invested), 0); const profit = live.reduce((a, x) => a + Number(x.expectedProfit), 0);
   const owned = whole.reduce((a, p) => a + Number(p.amount), 0); const saved = vaults.reduce((a, v) => a + Number(v.balance), 0) + goals.reduce((a, g) => a + Number(g.saved), 0);
-  const tiles = [["Co-owned", nairaShort(invested), "wash-mint", "users"], ["Expected profit", nairaShort(profit), "wash-gold", "trend"], ["Owned whole", nairaShort(owned), "wash-blue", "key"], ["Savings", nairaShort(saved), "wash-violet", "piggy"]] as const;
+  const tiles = [["Co-owned", nairaShort(invested), "wash-mint", "users"], ["Expected profit", nairaShort(profit), "wash-gold", "trend"], ["Owned whole", nairaShort(owned), "wash-blue", "key"], ["Savings", nairaShort(saved), "wash-violet", "notes"]] as const;
   return (<div><PageHead title="Portfolio" sub="Own Together. Grow Together." />
     <div className="px-4 lg:px-8 space-y-5">
       <div className="rounded-3xl wash-soft ring-1 ring-black/[.03] p-5 relative k-rise">

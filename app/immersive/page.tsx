@@ -1,3 +1,4 @@
+import { searchText } from "@/lib/specs";
 import type { Metadata, Viewport } from "next";
 import { listings } from "@/lib/q";
 import { currentUser } from "@/lib/auth";
@@ -14,9 +15,9 @@ export default async function Immersive({ searchParams }: { searchParams: Promis
   const paid = new Set((await prisma.placement.findMany({ where: { slot: "immersive", status: "ACTIVE", endsAt: { gt: now } }, select: { listingId: true } })).map((p: any) => p.listingId));
   const isF = (l: (typeof all)[number]) => l.featured.includes("immersive") || paid.has(l.id);
   const qq = (s.q || "").toLowerCase().trim();
-  let items = [...all.filter(isF), ...all.filter((l) => !isF(l))].filter((l) => !qq || qq.split(/\s+/).every((w) => `${l.title} ${l.estate} ${l.city} ${l.state} ${l.type} ${l.status} ${l.beds}-bed ${l.beds} beds ${l.baths} baths ${l.sqm} m2 ${l.sqm} m²`.toLowerCase().includes(w)));
+  let items = [...all.filter(isF), ...all.filter((l) => !isF(l))].filter((l) => !qq || qq.split(/\s+/).every((w) => `${l.title} ${l.estate} ${l.city} ${l.state} ${l.type} ${l.status} ${l.beds}-bed ${l.beds} beds ${l.baths} baths ${l.sqm} m2 ${l.sqm} m² ${searchText(l)}`.toLowerCase().includes(w)));
   if (s.id) { const i = items.findIndex((l) => l.id === s.id); if (i > 0) items = [items[i], ...items.slice(0, i), ...items.slice(i + 1)]; }
-  const feed: FeedItem[] = items.map((l) => ({ id: l.id, title: l.title, price: l.price, city: l.city, state: l.state, estate: l.estate, desc: l.desc, beds: l.beds, baths: l.baths, sqm: l.sqm, status: l.status, type: l.type, seller: l.sellerName, sellerId: l.sellerId, imgs: photos(l), featured: isF(l), deal: l.deal, sellerImg: l.sellerImg }));
+  const feed: FeedItem[] = items.map((l) => ({ id: l.id, title: l.title, price: l.price, city: l.city, state: l.state, estate: l.estate, desc: l.desc, beds: l.beds, baths: l.baths, sqm: l.sqm, kind: l.kind, attrs: l.attrs, videos: l.videos, status: l.status, type: l.type, seller: l.sellerName, sellerId: l.sellerId, imgs: photos(l), featured: isF(l), deal: l.deal, sellerImg: l.sellerImg }));
   const savedIds = u ? (await prisma.goal.findMany({ where: { userId: u.id, listingId: { not: null } }, select: { listingId: true } })).map((g) => g.listingId!) : [];
   if (feed.some((f) => f.featured)) await track("immersive", feed[0].city).catch(() => {});
   return <Feed items={feed} authed={!!u} me={u?.id ?? null} savedIds={savedIds} q={s.q || ""} />;
