@@ -1,4 +1,5 @@
 import FacetLink from "@/components/FacetLink";
+import SoundVideo from "@/components/SoundVideo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Icon from "@/components/Icon";
@@ -26,7 +27,7 @@ export default async function Prop({ params }: { params: Promise<{ id: string }>
         <div className="k-specs rounded-2xl ring-1 ring-navy/5 shadow-card p-3 grid grid-cols-3 gap-2 text-center text-sm">{specs(l).map(([i, t], k) => <FacetLink key={t} q={t.replace(" m²", " m2")} className={`flex flex-col items-center gap-1 text-navy rounded-xl py-2 font-semibold transition-colors hover:brightness-95 ${["wash-blue", "wash-mint", "wash-gold"][k % 3]}`}><Icon n={i} />{t}</FacetLink>)}</div>
         <div className="card p-4"><h2 className="font-bold text-navy">About this {kindNoun(l)}</h2><div className="flex gap-1.5 flex-wrap mt-2"><StatusChip s={l.status} /><ModeChip d={d} /></div><div className="text-sm mt-2 text-navy/80 leading-relaxed space-y-2">{l.desc.split(/\n\s*\n/).map((para, k) => <p key={k}>{para}</p>)}</div>
           {attrRows(l).length > 0 && <dl className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">{attrRows(l).map(([k, v]) => <div key={k} className="rounded-xl bg-navy-50 px-3 py-2"><dt className="text-silver">{k}</dt><dd className="font-semibold text-navy">{v}</dd></div>)}</dl>}<div className="mt-3"><Trust compact /></div></div>
-        {l.videos.length > 0 && <div className="card p-4"><h2 className="font-bold text-navy mb-2">{isAuto(l) ? "Walkaround video" : "Video tour"}</h2><div className={`grid gap-3 ${l.videos.length > 1 ? "sm:grid-cols-2" : ""}`}>{l.videos.map((v) => <video key={v} src={v} poster={l.img} controls playsInline preload="metadata" className="w-full max-h-[70vh] rounded-xl bg-black object-contain" />)}</div></div>}
+        {l.videos.length > 0 && <div className="card p-4"><h2 className="font-bold text-navy mb-2">{isAuto(l) ? "Walkaround video" : "Video tour"}</h2><div className={`grid gap-3 ${l.videos.length > 1 ? "sm:grid-cols-2" : ""}`}>{l.videos.map((v) => <SoundVideo key={v} src={v} poster={l.img} controls playsInline preload="metadata" className="w-full max-h-[70vh] rounded-xl bg-black object-contain" />)}</div></div>}
         <div className="card p-4 space-y-3"><div className="flex items-center justify-between"><h2 className="font-bold text-navy">The deal</h2><span className="chip wash-gold">{HORIZON[d.horizon].label}</span></div><DealSheet d={d} />
           {d.mode !== "BUY" && d.seats > 0 && <div className="grid grid-cols-3 gap-2 text-center text-xs">{([["Needed", d.total, "wash-blue"], ["Maintenance", l.deal.maintenanceCost, "wash-cyan"], ["Completion", l.deal.completionCost, "wash-peach"]] as const).map(([k, v, w]) => <div key={k} className={`k-tile ${w}`}><div className="opacity-70">{k}</div><b>{naira(v)}</b></div>)}</div>}
           <RiskLine /></div>

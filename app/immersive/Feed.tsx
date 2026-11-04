@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSound } from "@/components/sound";
 import ViewToggle from "@/components/ViewToggle";
 import Icon from "@/components/Icon";
 import { post, SafeImg } from "@/components/Ui";
@@ -34,7 +35,7 @@ function Slide({ it, authed, me, saved, onSave }: { it: FeedItem; authed: boolea
   const chat = async () => { if (!authed) return r.push("/signup"); if (me === it.sellerId) return flash("This is your listing"); try { const d = await post("chat-start", { listingId: it.id }); r.push(`/chat/${d.id}`); } catch (e: any) { flash(e.message); } };
   const save = async () => { if (!authed) return r.push("/signup"); if (saved) return r.push("/savings"); try { await post("goal", { listingId: it.id, units: it.deal.canInvest ? 1 : 0 }); onSave(); flash("Saving toward it — see Savings"); } catch (e: any) { flash(e.message); } };
   const d = it.deal; const primary = d.canInvest ? { label: "Invest", icon: "coins", href: `/checkout/${it.id}?mode=invest` } : d.canBuy ? { label: "Buy", icon: "key", href: `/checkout/${it.id}?mode=buy` } : null;
-  const [bad, setBad] = useState<string[]>([]); const [muted, setMuted] = useState(true);
+  const [bad, setBad] = useState<string[]>([]); const [sound, setSound] = useSound(); const muted = !sound;
   const media: { t: "v" | "i"; src: string }[] = [...(it.videos || []).filter((v) => !bad.includes(v)).map((src) => ({ t: "v" as const, src })), ...it.imgs.map((src) => ({ t: "i" as const, src }))];
   const bg = media[i]?.t === "i" ? media[i].src : it.imgs[0];
   const [orient, setOrient] = useState<Record<number, "p" | "l">>({}); const portrait = orient[i] === "p";
@@ -43,7 +44,7 @@ function Slide({ it, authed, me, saved, onSave }: { it: FeedItem; authed: boolea
     <div className={`absolute inset-0 scale-110 blur-2xl transition-opacity duration-500 ${portrait ? "opacity-0 md:opacity-60" : "opacity-60"}`} style={{ backgroundImage: bg ? `url(${bg})` : undefined, backgroundSize: "cover", backgroundPosition: "center" }} />
     <div ref={strip} onScroll={(e) => { const el = e.currentTarget; setI(Math.round(el.scrollLeft / el.clientWidth)); }} className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
       {media.map((m, k) => { const src = m.src; const p = orient[k] === "p"; return <div key={m.t + src} className="relative w-full h-full shrink-0 snap-center flex items-center justify-center">
-        {m.t === "v" ? <Vid src={src} poster={it.imgs[0]} active={k === i} muted={muted} onToggle={() => setMuted((x) => !x)} onFail={() => setBad((b) => [...b, src])} /> :
+        {m.t === "v" ? <Vid src={src} poster={it.imgs[0]} active={k === i} muted={muted} onToggle={() => setSound(muted)} onFail={() => setBad((b) => [...b, src])} /> :
         <SafeImg src={src} alt={it.title} loading={k ? "lazy" : "eager"} draggable={false} fit={p ? "object-cover" : "object-contain"} onLoad={(e) => { const im = e.currentTarget; setOrient((o) => ({ ...o, [k]: im.naturalHeight > im.naturalWidth * 1.05 ? "p" : "l" })); }}
           className={p ? "absolute inset-0 w-full h-full md:static md:h-full md:w-auto md:max-w-full md:aspect-[9/16] md:shadow-2xl animate-[kfade_.5s_ease]" : "w-full md:w-auto max-h-[62%] md:max-h-[78%] md:max-w-[min(1100px,86%)] md:rounded-3xl shadow-2xl ring-1 ring-white/10 animate-[kfade_.5s_ease]"} />}
       </div>; })}

@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Tip from "./Tip";
 import Icon from "./Icon";
+import { useSound, playPref } from "./sound";
 export function PasswordInput({ name = "password", placeholder = "At least 8 characters", label = "Password", help = true }: { name?: string; placeholder?: string; label?: string; help?: boolean }) {
   const [show, setShow] = useState(false);
   return (
@@ -36,11 +37,12 @@ export function SafeImg({ src, alt = "", className = "", fit = "object-cover", o
   return <img ref={ref} key={url} src={url} alt={cur.ok ? alt : ""} decoding="async" referrerPolicy={ext ? "no-referrer" : undefined} onLoad={(e) => { setSt((x) => (x.s === src ? { ...x, ok: true } : x)); onLoad?.(e); }} onError={fail} className={`${fit} transition-opacity duration-300 ${cur.ok ? "opacity-100" : "opacity-0"} ${className}`} {...rest} />;
 }
 export function Cover({ id, src, alt, className = "", video }: { id: string; src: string; alt: string; className?: string; video?: string }) {
-  const v = useRef<HTMLVideoElement>(null); const [bad, setBad] = useState(false); const [on, setOn] = useState(false);
+  const v = useRef<HTMLVideoElement>(null); const [bad, setBad] = useState(false); const [on, setOn] = useState(false); const [sound, setSound] = useSound();
   useEffect(() => { const el = v.current; if (!el || !video) return; const io = new IntersectionObserver(([e]) => setOn(e.isIntersecting && e.intersectionRatio > 0.7), { threshold: [0, 0.7] }); io.observe(el); return () => io.disconnect(); }, [video]);
-  useEffect(() => { const el = v.current; if (!el) return; if (on) el.play().catch(() => {}); else el.pause(); }, [on]);
+  useEffect(() => { const el = v.current; if (!el) return; if (on) playPref(el, sound); else el.pause(); }, [on, sound]);
   return (<div className={`relative overflow-hidden wash-soft ${className}`} style={{ backgroundImage: `url(/media/seed/${id}-cover.svg)`, backgroundSize: "cover" }}>
     <SafeImg src={src} alt={alt} className="absolute inset-0 w-full h-full" />
     {video && !bad && <video ref={v} src={video} poster={src} muted loop playsInline preload="metadata" onError={() => setBad(true)} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${on ? "opacity-100" : "opacity-0"}`} />}
-    {video && !bad && <span className="absolute left-2 bottom-2 z-[1] rounded-full bg-[#002454]/70 text-white text-[10px] font-semibold px-2 py-0.5 backdrop-blur">▶ Video</span>}</div>);
+    {video && !bad && <span className="absolute left-2 bottom-2 z-[1] rounded-full bg-[#002454]/70 text-white text-[10px] font-semibold px-2 py-0.5 backdrop-blur">▶ Video</span>}
+    {video && !bad && on && <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSound(!sound); }} className="absolute right-2 bottom-2 z-[2] rounded-full bg-[#002454]/70 text-white text-[11px] font-semibold px-2 py-1 backdrop-blur ring-1 ring-white/20" aria-label={sound ? "Mute" : "Unmute"}>{sound ? "🔊" : "🔇 Tap for sound"}</button>}</div>);
 }

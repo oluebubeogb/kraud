@@ -1,4 +1,5 @@
-const csp = ["default-src 'self'", "script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"), "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob: https:", "font-src 'self' data:", "connect-src 'self'", "frame-ancestors 'none'", "form-action 'self' https://*.monnify.com", "base-uri 'self'"].join("; ");
+let bannk = ""; try { const u = process.env.MONNIFY_BASE_URL; if (u) bannk = " " + new URL(u).origin; } catch {}
+const csp = ["default-src 'self'", "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com" + (process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"), "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "img-src 'self' data: blob: https:", "font-src 'self' data: https://fonts.gstatic.com", "connect-src 'self' https://images.unsplash.com https://cloudflareinsights.com https://*.cloudflareinsights.com" + bannk, "frame-ancestors 'none'", "form-action 'self'" + bannk, "base-uri 'self'"].join("; ");
 export default {
   output: "standalone",
   serverExternalPackages: ["pdfkit", "@prisma/client", "prisma"],
